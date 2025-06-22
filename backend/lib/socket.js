@@ -27,6 +27,7 @@ io.on("connection", (socket) => {
         delete userSocketMap[userId];
     });
 
+
 });
 
 export const emitToUser =(userId,event,data)=>{
@@ -34,6 +35,7 @@ export const emitToUser =(userId,event,data)=>{
     if(recieverSocketId) {
         io.to(recieverSocketId).emit(event, data);
         }
+    console.log("emitting to", recieverSocketId);
 }
 
 export {app,server,io};

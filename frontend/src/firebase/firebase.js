@@ -8,6 +8,8 @@ import {
   signOut
 } from 'firebase/auth';
 
+import {getFirestore} from 'firebase/firestore';
+
 const firebaseConfig = {
   apiKey: "AIzaSyCrf09SA85GzrACradw8rWSNrBVBLjaHJ4",
   authDomain: "task-manager-5928c.firebaseapp.com",
@@ -22,4 +24,5 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
+export const db = getFirestore(app);
 export default app;

@@ -4,17 +4,54 @@ import { useAuth } from "./auth.store.jsx";
 
 const BASE_URL = "http://localhost:3000";
 export const useSocketStore = create((set, get) => ({
-    socket:null,
+  socket: null,
+  notifications: [],
 
-    connectSocket:(currentUser)=>{
-        
-        if(!currentUser || get()?.socket?.connected) return;
-        const socket = io(BASE_URL,{query:{userId:currentUser.uid}});
-        // socket.connect()
-        set({socket});
-    } ,
-    disconnectSocket:()=>{
-        if(get()?.socket?.connected) get()?.socket?.disconnect();
-        set({socket:null});
+  connectSocket: (currentUser) => {
+    console.log("🔄 connectSocket called for user:", currentUser?.uid);
+
+    if (!currentUser) {
+      console.log("❌ No user provided");
+      return;
     }
+
+    const currentSocket = get()?.socket;
+
+    if (currentSocket?.connected) {
+      console.log("✅ Socket already connected:", currentSocket.id);
+      return;
+    }
+
+    if (currentSocket) {
+      console.log("🔌 Disconnecting existing socket:", currentSocket.id);
+      currentSocket.disconnect();
+    }
+
+    console.log("🆕 Creating new socket connection...");
+    const socket = io(BASE_URL, { query: { userId: currentUser.uid } });
+
+    socket.on("connect", () => {
+      console.log("✅ Socket connected:", socket.id);
+    });
+
+    socket.on("taskAssigned", (data) => {
+      console.log(data.message);
+      set({ notifications: [...get().notifications, data.message] });
+    });
+
+    set({ socket });
+  },
+
+  disconnectSocket: () => {
+    if (get()?.socket?.connected) get()?.socket?.disconnect();
+    set({ socket: null });
+  },
+
+//   receiveNotification: () => {
+//     console.log("receiveNotification");
+//     get().socket.on("taskAssigned", (data) => {
+//       console.log(data.message);
+//       set({ notifications: [...get().notifications, data.message] });
+//     });
+//   },
 }));

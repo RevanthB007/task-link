@@ -103,7 +103,7 @@
 // };
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { 
+import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -124,7 +124,8 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  
+  const [hasInitialized, setHasInitialized] = useState(false);
+
   // ✅ Call the hook inside the component
   const { connectSocket, disconnectSocket } = useSocketStore();
 
@@ -132,17 +133,40 @@ export const AuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
       setLoading(false);
-      
-      // Connect/disconnect socket based on auth state
-      if (user) {
-        connectSocket(user);
-      } else {
-        disconnectSocket();
-      }
     });
 
     return unsubscribe;
-  }, [connectSocket, disconnectSocket]);
+  }, []);
+
+  useEffect(() => {
+    console.log('🔄 Socket useEffect triggered:', {
+      loading,
+      currentUser: currentUser?.uid,
+      hasInitialized
+    });
+
+    if (loading) {
+      console.log('⏳ Still loading, skipping...');
+      return;
+    }
+
+    if (!currentUser) {
+      if (hasInitialized) {
+        console.log('🔌 Disconnecting socket - user logged out');
+        disconnectSocket();
+      } else {
+        console.log('⏭️ No user on first load, skipping disconnect');
+      }
+    } else {
+      console.log('🔗 Connecting socket for user:', currentUser.uid);
+      connectSocket(currentUser);
+    }
+
+    if (!hasInitialized) {
+      console.log('✅ Marking as initialized');
+      setHasInitialized(true);
+    }
+  }, [currentUser, hasInitialized]);
 
   const signUpWithEmail = async (email, password) => {
     try {

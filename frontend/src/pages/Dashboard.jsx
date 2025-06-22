@@ -2,23 +2,18 @@ import React, { useEffect, useState } from 'react'
 import useStore from '../store/todoStore'
 import "../index.css"
 import { useAuth } from '../store/auth.store';
+import { Notifications } from '../components/Notifications';
 
 export const Dashboard = () => {
   const { todos, fetchTodos, addTodo, editTodo, deleteTodo, markFinished, isLoading, error, fetchTodo,date } = useStore();
   const [todo, setTodo] = useState("")
   const [editMode, setEditMode] = useState(false)
   const [editTodoId, setEditTodoId] = useState(null)
-  const currentUser = useAuth();
+  const {currentUser ,loading}= useAuth();
   const currentUserId = currentUser.uid;
-  useEffect(() => { fetchTodos(date) }, [,currentUser])
+  useEffect(() => { fetchTodos(date) }, [currentUser])
 
   const handleChange = (e) => { setTodo(e.target.value) }
-//remove later
-  // const copyToken = async () => {
-  //   const token = await currentUser.getIdToken();
-  //   navigator.clipboard.writeText(token);
-  //   console.log(token);
-  // }
 
   const handleSubmit = async () => {
     if (!editMode) {
@@ -49,10 +44,17 @@ export const Dashboard = () => {
   }
 
   return (
+    <>
+  {!loading &&
+
     <div className='mr-10 ml-10 w-full pt-4 '>
-      <div>
-        <h2 className='text-2xl font-bold'>Hello User !</h2>
+
+      <div className="flex items-center justify-around">
+      <div className="mr-[750px]">
+        <h2 className='text-2xl font-bold'>Hello {currentUser.displayName} !</h2>
         <span className='text-xs'>here is whats up today</span>
+      </div>
+      <Notifications />
       </div>
       <div className='p-3 w-1/2 mt-5 mb-5 bg-white rounded-xl flex flex-col shadow-md'>
         <div className='flex flex-row gap-2 m-4'>
@@ -99,10 +101,9 @@ export const Dashboard = () => {
           ))
         }
       </div>
-
-      {/* <button onClick={copyToken} className="bg-red-500 text-white p-2">
-  Copy Token for Postman
-</button> */}
     </div>
+  
+}
+</>
   )
 }

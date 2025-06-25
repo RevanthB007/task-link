@@ -22,6 +22,8 @@ const useStore = create((set, get) => ({
   date: null,
   isLoading: false,
   error: null,
+  assignedTasks:[],
+  outsoucedTasks:[],
 
   setDate: (date) => set({ date }),
 
@@ -121,17 +123,19 @@ const useStore = create((set, get) => ({
     set({ isLoading: true });
 
     try {
+      console.log("marking todo as finished",id);
       const headers = await getAuthHeaders();
-      const todo = await axiosInstance.get("/todos/" + id, { headers });
-      todo.data.isCompleted = !todo.data.isCompleted;
       const response = await axiosInstance.put(
-        "/todos/finish/" + todo.data.id,
+        `/todos/finish/${id}`,
+        {},
         { headers }
       );
+      console.log(response.data);
       console.log("marked as finished");
       await get().fetchTodos();
     } catch (error) {
       console.log("error editing todo");
+      console.log(error);
       set({ isLoading: false });
     }
   },
@@ -150,6 +154,48 @@ const useStore = create((set, get) => ({
        set({ isLoading: false });
     }
   },
+
+  fetchAssignedTasks: async()=>{
+    set({isLoading:true})
+    try {
+      const response = await axiosInstance.get("/todos/org/assigned");
+      set({assignedTasks:response.data,isLoading:false})
+
+    } catch (error) {
+      console.log("error fetching assigned tasks");
+      set({ isLoading: false });
+    }
+  },
+
+  fetchOutsourcedTasks: async()=>{
+    set({isLoading:true})
+    try {
+      const response = await axiosInstance.get("/todos/org/outsourced");
+      set({outsoucedTasks:response.data,isLoading:false})
+    } catch (error) {
+      console.log("error fetching outsourced tasks");
+      set({ isLoading: false });
+      
+    }
+  },
+
+createAndAssignTask: async(taskData)=>{
+  set({isLoading:true})
+  try {
+    const headers = await getAuthHeaders();
+    const response = await axiosInstance.post("/todos/org/createAssign/",taskData,{headers});
+    console.log("task created",response.data);
+    set({isLoading:false})
+
+  } catch (error) {
+    console.log("error creating and assigning task");
+    set({ isLoading: false });
+    
+  }
+}
+
 }));
+
+
 
 export default useStore;

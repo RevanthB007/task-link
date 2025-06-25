@@ -13,7 +13,7 @@ export const Notifications = () => {
   console.log("📱 Current notifications:", notifications);
   
   return (
-    <div className="relative">
+    <div className="relative mr-5">
       {notifications.length == 0 ?
         <span
           className="material-symbols-outlined cursor-pointer"

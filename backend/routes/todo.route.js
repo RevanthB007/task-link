@@ -1,5 +1,5 @@
 import express from 'express';
-import { addTodo,deleteTodo,editTodo,fetchTodos,fetchTodo,markFinished,assignTask,getAssignedTasks,getOutsourcedTasks } from '../controllers/todo.controller.js';
+import { addTodo,deleteTodo,editTodo,fetchTodos,markFinished,assignTask,getAssignedTasks,getOutsourcedTasks,createOrg ,fetchOrgs,fetchTodo,addMemberToOrg, createAndAssignTask} from '../controllers/todo.controller.js';
 import {verifyToken} from "../middleware/auth.middleware.js";
 
 const router = express.Router()
@@ -15,6 +15,8 @@ router.get("/:id",verifyToken,fetchTodo);
 router.put("/org/assign/:id",verifyToken,assignTask);
 router.get("/org/assigned",verifyToken,getAssignedTasks);
 router.get("/org/outsourced",verifyToken,getOutsourcedTasks);
-
-
+router.post("/org/create/",verifyToken,createOrg);
+router.get("/org/fetch/",verifyToken,fetchOrgs);
+router.put("/org/add/:id",verifyToken,addMemberToOrg);
+router.post("/org/createAssign/",verifyToken,createAndAssignTask);
 export default router;

@@ -25,8 +25,8 @@ const TodoSchema = new mongoose.Schema({
         default:false,
     },
     assignedTo:{
-        type:String,
-        default:null,
+        type:Schema.Types.Mixed,
+        default:[],
     },
     assignedAt:{
         type:Date,
@@ -41,12 +41,11 @@ const TodoSchema = new mongoose.Schema({
         enum:["low","medium","high"],
         default:"medium",
     },
-    status:{
+    orgId:{
         type:String,
-        enum:["pending","in-progress","completed"],
-        default:"pending",
+        default:null,
     },
-
+    
 },
 {timestamps:true});
 

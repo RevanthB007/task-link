@@ -93,6 +93,14 @@ const AppLayout = () => {
               </ProtectedRoute>
             } 
           />
+          <Route 
+            path="/AI" 
+            element={
+              <ProtectedRoute>
+                <div>AI Scheduler for later</div>
+              </ProtectedRoute>
+            } 
+          />
           
           {/* Default redirects */}
           <Route 
@@ -119,7 +127,7 @@ export const App = () => {
 
   return (
     <AuthProvider>
-      <AppLayout />
+      <AppLayout className="overflow-hidden"/>
     </AuthProvider>
   );
 };

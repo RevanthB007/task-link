@@ -1,5 +1,7 @@
 import { Todo } from "../models/todo.model.js";
 import { emitToUser } from "../lib/socket.js";
+import { Organization } from "../models/organization.model.js";
+import { db } from "../config/firebase.js";
 
 export const addTodo = async (req, res) => {
   const userId = req.user.uid;
@@ -66,7 +68,7 @@ export const fetchTodos = async (req, res) => {
   let query = {};
   if (startOfDay && endOfDay) {
     query.createdAt = { $gte: new Date(startOfDay), $lte: new Date(endOfDay) };
-    query.userId = req.user.uid;
+    query.$or = [{ assignedTo: req.user.uid }, { userId: req.user.uid }];
   }
   try {
     console.log("fetching todos from db");
@@ -160,7 +162,7 @@ export const assignTask = async (req, res) => {
     });
 
     console.log(`task assigned successfully to ${assignedTo}`);
-    res.status(200).json({ message: "Task assigned successfully" , todo});
+    res.status(200).json({ message: "Task assigned successfully", todo });
   } catch (error) {
     console.log("error assigning task");
     res.status(400).json({ message: error.message });
@@ -192,5 +194,125 @@ export const getOutsourcedTasks = async (req, res) => {
   } catch (error) {
     console.log("error fetching outsourced tasks");
     res.status(400).json({ message: error.message });
+  }
+};
+
+export const createOrg = async (req, res) => {
+  const { orgName, creator } = req.body;
+  const user = await getUserByEmail(creator);
+
+  if (!user) {
+    return res.status(400).json({ message: "User not found" });
+  }
+  let members = [user];
+
+  try {
+    const response = await Organization.create({ orgName, members });
+    res.status(200).json(response);
+  } catch (error) {
+    console.log("error creating org");
+    res.status(400).json({ message: error.message });
+  }
+};
+
+export const fetchOrgs = async (req, res) => {
+  const userId = req.user.uid;
+  // const email = req.query.email;
+  const email = req.user.email;
+  console.log(email, userId);
+  try {
+    console.log("initiating fetch orgs from db");
+    const orgs = await Organization.find({
+      members: { $elemMatch: { uid: userId } },
+    });
+    if (orgs) {
+      console.log("orgs found");
+      console.log(orgs);
+      res.status(200).json(orgs);
+    } else {
+      console.log("orgs not found");
+      res.status(200).json([]);
+    }
+  } catch (error) {
+    console.log("error fetching orgs");
+    res.status(400).json({ message: error.message });
+  }
+};
+
+export const getUserByEmail = async (email) => {
+  try {
+    console.log("Searching for user with email:", email); // Add this
+    const usersRef = db.collection("users");
+    const snapshot = await usersRef.where("email", "==", email).get();
+    console.log("Query snapshot empty?", snapshot.empty); // Add this
+    console.log("Number of docs found:", snapshot.docs.length); // Add this
+    if (!snapshot.empty) {
+      const userDoc = snapshot.docs[0];
+      const userData = { id: userDoc.id, ...userDoc.data() };
+      console.log("User data found:", userData); // Add this
+      return userData;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error getting user by email:", error);
+    throw error;
+  }
+};
+
+export const addMemberToOrg = async (req, res) => {
+  const orgId = req.params.id;
+  const { email } = req.body;
+  console.log("email", email);
+  console.log("orgId", orgId);
+  const user = await getUserByEmail(email);
+  console.log("user", user);
+  if (!user) {
+    console.log("user not found");
+    return res.status(400).json({ message: "User not found" });
+  }
+  try {
+    const org = await Organization.findById(orgId);
+    if (org) {
+      org.members.push(user);
+      await org.save();
+      return res.status(200).json({ org, message: "Member added to org" });
+    } else {
+      return res.status(400).json({ message: "Org not found" });
+    }
+  } catch (error) {
+    console.log("error adding member to org");
+    return res.status(400).json({ message: "Error adding member to org" });
+  }
+};
+
+export const createAndAssignTask = async (req, res) => {
+  console.log(req.body);
+  const { title, description, assignedTo, orgId, userId } = req.body;
+  let members = [];
+  assignedTo.map(async (member) => {
+    members.push(member.uid);
+  });
+  try {
+    const todo = await Todo.create({
+      title,
+      description,
+      assignedTo: members,
+      orgId,
+      userId,
+    });
+    if (todo) {
+      todo.save();
+      console.log(todo);
+      return res
+        .status(200)
+        .json({ todo, message: "Task created and assigned" });
+    } else {
+      return res.status(400).json({ message: "Error creating task" });
+    }
+  } catch (error) {
+    console.log("error creating and assigning task");
+    return res
+      .status(400)
+      .json({ message: "Error creating and assigning task" });
   }
 };

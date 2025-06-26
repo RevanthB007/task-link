@@ -30,12 +30,14 @@ io.on("connection", (socket) => {
 
 });
 
-export const emitToUser =(userId,event,data)=>{
+export const emitToUser =(userIds,event,data)=>{
+    userIds.forEach((userId) =>{
     const recieverSocketId = getRecieverSocketId(userId);
     if(recieverSocketId) {
         io.to(recieverSocketId).emit(event, data);
         }
     console.log("emitting to", recieverSocketId);
+})
 }
 
 export {app,server,io};

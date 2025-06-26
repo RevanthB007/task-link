@@ -47,11 +47,6 @@ export const useSocketStore = create((set, get) => ({
     set({ socket: null });
   },
 
-//   receiveNotification: () => {
-//     console.log("receiveNotification");
-//     get().socket.on("taskAssigned", (data) => {
-//       console.log(data.message);
-//       set({ notifications: [...get().notifications, data.message] });
-//     });
-//   },
+  deleteNotification: (idx) => set((state) => ({ notifications: state.notifications.filter((_, i) => i !== idx) }))
+
 }));

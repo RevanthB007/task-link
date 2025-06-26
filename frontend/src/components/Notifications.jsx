@@ -31,9 +31,9 @@ export const Notifications = () => {
     notifications.length > 0 ?
       <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-64 z-50">
         {notifications.map((notification, idx) => (
-          <p key={idx} className="py-2 px-2 hover:bg-gray-100 rounded text-black">
+          <><p key={idx} className="py-2 px-2 hover:bg-gray-100 rounded text-black">
             {notification}
-          </p>
+          </p><span className='material-symbols-outlined cursor-pointer' key={idx}>delete</span></>
         ))}
       </div>
       :

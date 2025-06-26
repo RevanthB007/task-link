@@ -302,7 +302,17 @@ export const createAndAssignTask = async (req, res) => {
     });
     if (todo) {
       todo.save();
+      const assignedBy = await getUserById(userId);
       console.log(todo);
+      console.log(assignedBy);
+      emitToUser(members, "taskAssigned", {
+        taskId: todo.id,
+        title: todo.title,
+        description: todo.description,
+        assignedBy: assignedBy,
+        message: `You have been assigned a task ${todo.title} by ${assignedBy.email}`,
+        timestamp: new Date(),
+      });
       return res
         .status(200)
         .json({ todo, message: "Task created and assigned" });
@@ -314,5 +324,25 @@ export const createAndAssignTask = async (req, res) => {
     return res
       .status(400)
       .json({ message: "Error creating and assigning task" });
+  }
+};
+
+export const getUserById = async (userId) => {
+  try {
+    console.log("Searching for user with ID:", userId);
+    const userDoc = await db.collection("users").doc(userId).get();
+    console.log("User document exists?", userDoc.exists);
+
+    if (userDoc.exists) {
+      const userData = { id: userDoc.id, ...userDoc.data() };
+      console.log("User data found:", userData);
+      return userData;
+    }
+
+    console.log("No user found with ID:", userId);
+    return null;
+  } catch (error) {
+    console.error("Error getting user by ID:", error);
+    throw error;
   }
 };

@@ -51,7 +51,7 @@ export const Sidebar = () => {
             
             {/* User Profile Section */}
             {!loading && (
-                <div className='absolute w-64 bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 shadow-inner'>
+                <div className='fixed w-64 bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 shadow-inner'>
                     <div className='flex items-center space-x-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors duration-200'>
                         {/* Profile Image */}
                         <div className='relative'>

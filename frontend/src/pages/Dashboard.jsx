@@ -17,7 +17,6 @@ export const Dashboard = () => {
   const currentUserId = currentUser.uid;
   
   useEffect(() => { fetchTodos(date) }, [currentUser, date]);
-
   const handleChange = (e) => { setTodo(e.target.value) }
   const handleDescriptionChange = (e) => { setDescription(e.target.value) }
 
@@ -232,6 +231,7 @@ return (
               </div>
 
               {selectedTodo.description && (
+                <>
                 <div className='mb-4'>
                   <label className='block text-sm font-medium text-gray-700 mb-2'>
                     Description
@@ -240,6 +240,15 @@ return (
                     {selectedTodo.description}
                   </div>
                 </div>
+                <div className='mb-4'>
+                  <label className='block text-sm font-medium text-gray-700 mb-2'>
+                    Status
+                  </label>
+                  <div className='text-gray-600 whitespace-pre-wrap break-words max-h-40 overflow-y-auto'>
+                    {selectedTodo.isCompleted? 'Completed' : 'Pending'}
+                  </div>
+                </div>
+                </>
               )}
 
               <div className='mb-4'>

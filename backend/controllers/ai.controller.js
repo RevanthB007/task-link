@@ -10,7 +10,7 @@ import { fetchTodos } from "./todo.controller.js";
 const evaluateProductivity = (todos) => {
   const totalTasks = todos.length;
   const completedTasks = todos.filter(todo => 
-    todo.completed || 
+    todo.isCompleted || 
     todo.status === 'done' || 
     todo.status === 'completed'
   ).length;
@@ -49,15 +49,18 @@ export const reviewUser = async (req, res) => {
       }
     });
 
+    if(todos){
+      console.log("todos", todos);
+
+    }
     // Get productivity metrics for consistent scoring
     const metrics = evaluateProductivity(todos);
+const prompt = `You are an enthusiastic and supportive productivity coach! Your job is to review the user's task management approach based on their today's todos data and provide a consistent, honest score out of 10 with uplifting feedback.
 
-    const prompt = `You are an enthusiastic and supportive productivity coach! Your job is to review the user's task management approach based on their today's todos data and provide a consistent, honest score out of 10 with uplifting feedback.
-
-Data: ${JSON.stringify(todos)}
+Data: ${todos}
 
 SCORING CRITERIA (use these exact standards):
-- 9-10: Exceptional performance (80%+ completion rate, well-organized, clear priorities)
+- 9-10: Exceptional performance (80%+ completion rate, well-organized, clear structure)
 - 7-8: Strong performance (60-79% completion rate, good organization, solid progress)
 - 5-6: Moderate performance (40-59% completion rate, some organization, decent effort)
 - 3-4: Needs improvement (20-39% completion rate, limited organization, minimal progress)
@@ -70,8 +73,8 @@ CONTEXT FOR CONSISTENCY:
 - Baseline score range: ${metrics.baselineScore}-${metrics.baselineScore + 1}
 
 EVALUATION CHECKLIST:
-1. Calculate completion rate: (completed tasks / total tasks) × 100
-2. Assess organization: Are tasks categorized, prioritized, or structured?
+1. Calculate completion rate: (tasks with isCompleted: true / total tasks) × 100
+2. Assess organization: Are tasks categorized or structured?
 3. Review progress indicators: Are there signs of ongoing effort?
 4. Note task complexity and realistic goal-setting
 
@@ -88,7 +91,7 @@ FEEDBACK GUIDELINES:
 - Focus on productivity patterns, not task content
 - Acknowledge any progress made
 
-Remember: The score should reflect actual performance based on the data, while the feedback should be supportive and motivating. Use the provided context to ensure scoring consistency.`;
+Remember: The score should reflect actual performance based on the completion rate (isCompleted boolean values), while the feedback should be supportive and motivating. Use the provided context to ensure scoring consistency.`;
 
     const result = await model.generateContent(prompt);
     const response = result.response;

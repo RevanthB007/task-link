@@ -147,7 +147,7 @@ export const Sidebar = () => {
                                     </span>
                                     
                                     <span className="capitalize tracking-wide">
-                                        {link === '/AI' ? 'AI Assistant' : link.charAt(1).toUpperCase() + link.slice(2)}
+                                        {link === '/AI' ? 'AI Review' : link.charAt(1).toUpperCase() + link.slice(2)}
                                     </span>
                                 </>
                             )}

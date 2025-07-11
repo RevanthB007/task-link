@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { axiosInstance } from "../api/axios";
 import { auth } from "../firebase/firebase.js";
-import { getAuth } from "firebase/auth";
+import toast from "react-hot-toast";
 
 const getAuthToken = async () => {
   const user = auth.currentUser;
@@ -68,6 +68,7 @@ const useStore = create((set, get) => ({
       set({ todos: response.data, isLoading: false });
     } catch (error) {
       console.log(error);
+      toast.error("Failed to load todos");
       set({ error: error.message, isLoading: false });
     }
   },
@@ -83,9 +84,11 @@ const useStore = create((set, get) => ({
         headers,
       });
       set({ todos: [...todos, response.data], isLoading: false });
+      toast.success("Todo added successfully");
       await get().fetchTodos();
     } catch (error) {
       console.log("error adding todo");
+      toast.error("Failed to add todo");
       set({ isLoading: false });
     }
   },
@@ -97,9 +100,11 @@ const useStore = create((set, get) => ({
       const response = await axiosInstance.delete(`/todos/delete/${id}`, {
         headers,
       });
+      toast.success("Todo deleted successfully");
       await get().fetchTodos();
     } catch (error) {
       console.log("error deleting todo");
+      toast.error("Failed to delete todo");
       set({ isLoading: false });
     }
   },
@@ -112,9 +117,11 @@ const useStore = create((set, get) => ({
       const response = await axiosInstance.put(`/todos/edit/${todo.id}`, todo, {
         headers,
       });
+      toast.success("Todo updated successfully");
       await get().fetchTodos();
     } catch (error) {
       console.log("error editing todo");
+      toast.error("Failed to update todo");
       set({ isLoading: false });
     }
   },
@@ -131,11 +138,18 @@ const useStore = create((set, get) => ({
         { headers }
       );
       console.log(response.data);
+      if(response.data.todo.isCompleted){
       console.log("marked as finished");
+      toast.success("Todo marked as completed");
+      }else{
+        console.log("marked as not finished");
+        toast.success("Todo marked as not completed");
+      }
       await get().fetchTodos();
     } catch (error) {
       console.log("error editing todo");
       console.log(error);
+      toast.error("Failed to mark todo ");
       set({ isLoading: false });
     }
   },
@@ -148,9 +162,11 @@ const useStore = create((set, get) => ({
         headers,
       });
       console.log("task assigned",response.data);
+      toast.success("Task assigned successfully");
       set({ isLoading: false });
     } catch (error) {
        console.log("error assigning task");
+       toast.error("Failed to assign task");
        set({ isLoading: false });
     }
   },
@@ -163,6 +179,7 @@ const useStore = create((set, get) => ({
 
     } catch (error) {
       console.log("error fetching assigned tasks");
+      toast.error("Failed to load assigned tasks");
       set({ isLoading: false });
     }
   },
@@ -174,6 +191,7 @@ const useStore = create((set, get) => ({
       set({outsoucedTasks:response.data,isLoading:false})
     } catch (error) {
       console.log("error fetching outsourced tasks");
+      toast.error("Failed to load outsourced tasks");
       set({ isLoading: false });
       
     }
@@ -185,10 +203,12 @@ createAndAssignTask: async(taskData)=>{
     const headers = await getAuthHeaders();
     const response = await axiosInstance.post("/todos/org/createAssign/",taskData,{headers});
     console.log("task created",response.data);
+    toast.success("Task created and assigned successfully");
     set({isLoading:false})
 
   } catch (error) {
     console.log("error creating and assigning task");
+    toast.error("Failed to create and assign task");
     set({ isLoading: false });
     
   }

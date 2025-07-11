@@ -111,10 +111,10 @@ export const markFinished = async (req, res) => {
       await todo.save();
       if (todo.isCompleted) {
         console.log(todo, " marked as finished");
-        res.status(200).json({ message: "Todo marked as finished" });
+        res.status(200).json({ message: "Todo marked as finished",todo });
       } else {
         console.log(todo, " marked as not finished");
-        res.status(200).json({ message: "Todo marked as not finished" });
+        res.status(200).json({ message: "Todo marked as not finished",todo });
       }
     } else {
       console.log("todo not found");

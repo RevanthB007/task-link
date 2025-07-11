@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../store/auth.store.jsx'
@@ -102,7 +103,7 @@ export const Sidebar = () => {
             )}
 
             {/* Sidebar */}
-            <div className={`sidebar-container fixed lg:relative top-0 left-0 h-full w-64 bg-gradient-to-b from-slate-50 to-blue-50 shadow-lg border-r border-slate-200 z-40 transition-transform duration-300 ease-in-out ${
+            <div className={`sidebar-container fixed lg:relative top-0 left-0 h-full w-64 bg-gradient-to-b from-slate-50 to-blue-50 shadow-lg border-r border-slate-200 z-40 transition-transform duration-300 ease-in-out flex flex-col ${
                 isMobile 
                     ? isOpen 
                         ? 'translate-x-0' 
@@ -111,7 +112,7 @@ export const Sidebar = () => {
             }`}>
                 
                 {/* Header Section */}
-                <div className="px-6 py-8 border-b border-slate-200 mt-16 lg:mt-0">
+                <div className="px-6 py-8 border-b border-slate-200 mt-16 lg:mt-0 flex-shrink-0">
                     <h2 className="text-xl font-bold text-slate-800 tracking-tight">Task Manager</h2>
                     <p className="text-sm text-slate-500 mt-1">Navigation Menu</p>
                 </div>
@@ -156,7 +157,7 @@ export const Sidebar = () => {
                 
                 {/* User Profile Section */}
                 {!loading && (
-                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 shadow-inner">
+                    <div className="p-4 bg-white border-t border-slate-200 shadow-inner flex-shrink-0">
                         <div className="flex items-center space-x-3 p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors duration-200">
                             {/* Profile Image */}
                             <div className="relative flex-shrink-0">
@@ -197,3 +198,4 @@ export const Sidebar = () => {
         </>
     )
 }
+

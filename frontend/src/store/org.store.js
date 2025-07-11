@@ -2,21 +2,6 @@ import { create } from "zustand";
 import { axiosInstance } from "../api/axios";
 import { getAuth } from "firebase/auth";
 import { auth } from "../firebase/firebase.js";
-import { or } from "firebase/firestore";
-
-// const getAuthToken = async () => {
-//   const user = auth.currentUser;
-
-//   if (user) {
-//     return await user.getIdToken();
-//   }
-//   return null;
-// };
-
-// const getAuthHeaders = async () => {
-//   const token = await getAuthToken();
-//   return token ? { Authorization: `Bearer ${token}` } : {};
-// };
 
 const getAuthToken = async () => {
   const user = auth.currentUser;

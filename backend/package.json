@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js"
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +20,7 @@
     "firebase-admin": "^13.4.0",
     "mongoose": "^8.15.2",
     "socket.io": "^4.8.1",
+    "to-do-app": "file:..",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

@@ -174,3 +174,6 @@ storybook-static
 # Temporary folders
 tmp/
 temp/
+
+node_modules/
+*/node_modules/

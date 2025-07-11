@@ -174,7 +174,7 @@ const AppLayout = () => {
   }, [currentUser])
 
   return (
-    <div className={`flex flex-row gap-2 ${shouldShowSidebar ? '' : 'w-full'}`}>
+    <div className={`flex flex-row ${shouldShowSidebar ? '' : 'w-full'}`}>
       {/* Conditionally render sidebar */}
       {shouldShowSidebar && <Sidebar />}
       

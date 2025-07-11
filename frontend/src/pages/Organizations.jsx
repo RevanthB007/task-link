@@ -144,9 +144,10 @@ export const Organizations = () => {
   }, []);
 
   return (
+
     <div className='h-full bg-[#FAFCFF] w-full lg:w-4/5 m-0 lg:m-4'>
-      <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between mt-6 relative p-4 lg:p-0'>
-        <h2 className='text-black text-xl font-semibold mb-4 sm:mb-0 sm:ml-8'>Organizations</h2>
+      <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between mt-6 relative p-4 lg:p-0 pt-8'>
+        <h2 className='text-black text-3xl font-bold mb-4 sm:mb-0 sm:ml-8'>Organizations</h2>
 
         <button 
           className={`group relative flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm sm:text-base transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:mr-4 ${

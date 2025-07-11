@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../store/auth.store.jsx'
@@ -103,7 +102,7 @@ export const Sidebar = () => {
             )}
 
             {/* Sidebar */}
-            <div className={`sidebar-container fixed lg:relative top-0 left-0 h-full w-64 bg-gradient-to-b from-slate-50 to-blue-50 shadow-lg border-r border-slate-200 z-40 transition-transform duration-300 ease-in-out flex flex-col ${
+            <div className={`h-screen sidebar-container fixed lg:sticky top-0 left-0 bottom-0 lg:bottom-auto w-64 bg-gradient-to-b from-slate-50 to-blue-50 shadow-lg border-r border-slate-200 z-40 transition-transform duration-300 ease-in-out flex flex-col ${
                 isMobile 
                     ? isOpen 
                         ? 'translate-x-0' 
@@ -198,4 +197,8 @@ export const Sidebar = () => {
         </>
     )
 }
+
+
+
+
 

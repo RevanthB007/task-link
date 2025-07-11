@@ -93,7 +93,7 @@ export const Dashboard = ({page}) => {
           { page === "dashboard" &&
           <div className="flex-shrink-0 px-10 pt-4 pb-2 mb-4 lg:pl-10 pl-20">
             <div className="flex items-center justify-between">
-              <div className='bg-[#3b82f6] px-4 py-2 rounded-md'>
+              <div className=' px-4 py-2 rounded-md w-[348px]'>
                 <h2 className=' font-medium lg:text-3xl text-2xl'>Hello {currentUser.displayName}!</h2>
                 <span className=' font-italic py-2 lg:text-base text-sm'>here is whats up today</span>
               </div>

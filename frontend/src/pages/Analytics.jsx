@@ -13,7 +13,9 @@ export const Analytics = () => {
     const { todos } = useStore();
     const completed = todos.filter((todo) => todo.isCompleted).length;
     const incomplete = todos.filter((todo) => !todo.isCompleted).length;
+    const completionRate = (completed / todos.length * 100).toFixed(2)
 
+    const productivity = completionRate<60 ? 'low' : (completionRate>60 && completionRate<80) ? 'medium' : 'high'
     const handleShow = () => {
         setShowCalendar(!showCalendar);
     }
@@ -52,10 +54,10 @@ export const Analytics = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-6">
             {/* Header Section */}
-            <div className="mb-8">
+            <div className="mb-8 pl-16 lg:pl-0">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-800 mb-2">Analytics Dashboard</h1>
+                        <h1 className="text-3xl font-bold text-slate-800 mb-2">Analytics</h1>
                         <p className="text-slate-600">Track your productivity and task completion metrics</p>
                     </div>
 
@@ -125,7 +127,7 @@ export const Analytics = () => {
                             <h3 className="text-lg font-semibold text-slate-800">Completion Status</h3>
                         </div>
                         <div className="h-64 md:h-80 flex items-center justify-center">
-                            <div className="w-full max-w-sm">
+                            <div className="w-full max-w-sm h-[250px]">
                                 <TodoChart type="completed" />
                             </div>
                         </div>
@@ -143,7 +145,7 @@ export const Analytics = () => {
                             <h3 className="text-lg font-semibold text-slate-800">Task Assignment</h3>
                         </div>
                         <div className="h-64 md:h-80 flex items-center justify-center">
-                            <div className="w-full max-w-sm">
+                            <div className="w-full max-w-sm h-[250px]">
                                 <TodoChart type="assignment" />
                             </div>
                         </div>
@@ -175,7 +177,7 @@ export const Analytics = () => {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-slate-600">Completion Rate</p>
-                                <p className="text-2xl font-bold text-green-600">{(completed / todos.length * 100).toFixed(2)}%</p>
+                                <p className="text-2xl font-bold text-green-600">{completionRate}%</p>
                             </div>
                             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                                 <span className="material-symbols-outlined text-green-600">
@@ -203,7 +205,7 @@ export const Analytics = () => {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-slate-600">Productivity</p>
-                                <p className="text-2xl font-bold text-purple-600">High</p>
+                                <p className="text-2xl font-bold text-purple-600">{productivity}</p>
                             </div>
                             <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                                 <span className="material-symbols-outlined text-purple-600">

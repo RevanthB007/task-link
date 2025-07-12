@@ -28,7 +28,6 @@
 //     res.status(401).json({ error: 'Invalid token', details: error.message });
 //   }
 // };
-import { admin } from "../config/firebase.js";
 
 let admin;
 try {

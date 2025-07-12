@@ -171,7 +171,6 @@ export const AuthProvider = ({ children }) => {
   const signUpWithEmail = async (email, password) => {
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password);
-      // connectSocket(); // Remove this - it's handled in useEffect
       return result;
     } catch (error) {
       console.error('Email signup error:', error);
@@ -190,17 +189,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signInWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      const result = await signInWithPopup(auth, provider);
-      // connectSocket(); // Remove this - it's handled in useEffect
-      return result;
-    } catch (error) {
-      console.error('Google signin error:', error);
-      throw error;
+ const signInWithGoogle = async () => {
+  const provider = new GoogleAuthProvider();
+  try {
+    const result = await signInWithPopup(auth, provider);
+    return result;
+  } catch (error) {
+    console.error('Google signin error:', error);
+    
+    if (error.code === 'auth/popup-closed-by-user') {
+      console.log('User closed the Google sign-in popup');
+      return; 
     }
-  };
+    
+    throw error;
+  }
+};
 
   const resetPassword = async (email) => {
     try {
@@ -214,7 +218,6 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await signOut(auth);
-      // disconnectSocket(); // Remove this - it's handled in useEffect
     } catch (error) {
       console.error('Logout error:', error);
       throw error;

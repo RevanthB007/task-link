@@ -13,8 +13,8 @@ export const Login = () => {
   });
   const [loading, setLoading] = useState(false);
   
-  // Use the auth hook directly - this is the correct way
-  const { handleEmailSignIn, signInWithGoogle } = useAuth();
+  // Use the correct function names from your auth store
+  const { signInWithEmail, signInWithGoogle } = useAuth();
 
   const handleChange = (e) => {
     setFormData({
@@ -28,8 +28,8 @@ export const Login = () => {
     setLoading(true);
 
     try {
-      await handleEmailSignIn(formData.email, formData.password);
-      toast.success('Signed in successfully!');
+      await signInWithEmail(formData.email, formData.password);
+      // toast.success('Signed in successfully!');
     } catch (error) {
       console.error('Login error:', error);
       toast.error(error.message || 'Failed to sign in');

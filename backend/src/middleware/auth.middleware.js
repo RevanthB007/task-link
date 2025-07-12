@@ -30,7 +30,14 @@
 // };
 import { admin } from "../config/firebase.js";
 
-console.log('Admin imported:', !!admin);
+let admin;
+try {
+  const firebaseModule = await import("../config/firebase.js");
+  admin = firebaseModule.admin;
+  console.log('Admin imported:', !!admin);
+} catch (error) {
+  console.error('Failed to import Firebase admin:', error);
+}
 
 export const verifyToken = async (req, res, next) => {
   // console.log('Admin in middleware:', !!admin);

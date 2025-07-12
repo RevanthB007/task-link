@@ -32,7 +32,7 @@ if(process.env.NODE_ENV === "production"){
   app.use(express.static(path.join(__dirname,"../frontend/dist")));
   
   // Catch-all handler: send back React's index.html file for non-API routes
-  app.get("/files{/*path}", (req, res) => {
+  app.get("*", (req, res) => {
     if (!req.path.startsWith('/api/')) {
       res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
     } else {

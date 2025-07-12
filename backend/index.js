@@ -20,10 +20,24 @@ app.use("/api/todos",todoRoutes);
 app.use("/api/ai",aiRoutes);
 
 
+// if(process.env.NODE_ENV === "production"){
+//   app.use(express.static(path.join(__dirname,"../frontend/dist")));
+//   app.get("*",(req,res) =>{
+//     res.sendFile(path.join(__dirname,"../frontend","dist","index.html"));
+//   });
+// }
+
+// Production static files (only if in production)
 if(process.env.NODE_ENV === "production"){
   app.use(express.static(path.join(__dirname,"../frontend/dist")));
-  app.get("*",(req,res) =>{
-    res.sendFile(path.join(__dirname,"../frontend","dist","index.html"));
+  
+  // Catch-all handler: send back React's index.html file for non-API routes
+  app.get("*", (req, res) => {
+    if (!req.path.startsWith('/api/')) {
+      res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
+    } else {
+      res.status(404).json({ error: 'API route not found' });
+    }
   });
 }
 

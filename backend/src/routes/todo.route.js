@@ -1,7 +1,6 @@
 import express from 'express';
 import { addTodo,deleteTodo,editTodo,fetchTodos,markFinished,assignTask,getAssignedTasks,getOutsourcedTasks,createOrg ,fetchOrgs,fetchTodo,addMemberToOrg, createAndAssignTask} from '../controllers/todo.controller.js';
 import {verifyToken} from "../middleware/auth.middleware.js";
-import { reviewUser,test } from '../controllers/ai.controller.js';
 const router = express.Router()
 
 router.get("/",verifyToken,fetchTodos);

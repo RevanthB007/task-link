@@ -5,12 +5,15 @@ import { db } from "../config/firebase.js";
 
 export const addTodo = async (req, res) => {
   const userId = req.user.uid;
-  const { title, description } = req.body;
-  console.log(title, description, userId);
+  const { title, description, priority, dueDate, dueTime } = req.body;
+  // console.log(req.body);
   const newTodo = new Todo({
     title,
     description,
     userId,
+    priority,
+    dueDate,
+    dueTime,
   });
   try {
     await newTodo.save();
@@ -18,6 +21,7 @@ export const addTodo = async (req, res) => {
     res.status(201).json({ message: "Todo added successfully" });
   } catch (error) {
     console.log("error adding todo");
+    console.log(error);
     res.status(400).json({ message: error.message });
   }
 };

@@ -4,7 +4,7 @@ import { useAuth } from '../store/auth.store.jsx'
 import { useNavigate } from 'react-router-dom'
 
 export const Sidebar = () => {
-    const links = ["/dashboard", "/organizations", "/analytics", "/AI"]
+    const links = ["/dashboard", "/organizations", "/analytics", "/AI", "/scheduler"]
     const { currentUser, loading, logout } = useAuth()
     const navigate = useNavigate()
     const [isOpen, setIsOpen] = useState(false)
@@ -112,7 +112,7 @@ export const Sidebar = () => {
                 
                 {/* Header Section */}
                 <div className="px-6 py-8 border-b border-slate-200 mt-16 lg:mt-0 flex-shrink-0">
-                    <h2 className="text-xl font-bold text-slate-800 tracking-tight">Task Manager</h2>
+                    <h2 className="text-xl font-bold text-slate-800 tracking-tight">Task Link</h2>
                     <p className="text-sm text-slate-500 mt-1">Navigation Menu</p>
                 </div>
                 
@@ -142,11 +142,11 @@ export const Sidebar = () => {
                                         {link === '/dashboard' ? 'dashboard' : 
                                          link === '/organizations' ? 'business' :
                                          link === '/analytics' ? 'analytics' :
-                                         link === '/AI' ? 'psychology' : 'folder'}
+                                         link === '/AI' ? 'psychology' : 'schedule'}
                                     </span>
                                     
                                     <span className="capitalize tracking-wide">
-                                        {link === '/AI' ? 'AI Review' : link.charAt(1).toUpperCase() + link.slice(2)}
+                                        {(link === '/AI') || (link === '/scheduler') ? link === '/AI' ? 'AI Review' : 'Smart Scheduler' : link.charAt(1).toUpperCase() + link.slice(2)}
                                     </span>
                                 </>
                             )}

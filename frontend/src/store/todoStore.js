@@ -80,6 +80,7 @@ const useStore = create((set, get) => ({
     try {
       const headers = await getAuthHeaders();
       console.log("headers", headers);
+      console.log("todo", todo);
       const response = await axiosInstance.post("/todos/add", todo, {
         headers,
       });

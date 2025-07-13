@@ -1,6 +1,17 @@
 import mongoose from 'mongoose';
+
 import { Schema } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
+const now = new Date();
+const endOfDay = new Date(
+  now.getFullYear(),
+  now.getMonth(),
+  now.getDate(),
+  23, 
+  59, 
+  59, 
+  999 
+);
 const TodoSchema = new mongoose.Schema({
     userId:{
         type:String,
@@ -32,10 +43,6 @@ const TodoSchema = new mongoose.Schema({
         type:Date,
         default:null,
     },
-    // assignedBy:{
-    //     type:String,
-    //     default:null,
-    // },
     priority:{
         type:String,
         enum:["low","medium","high"],
@@ -45,6 +52,14 @@ const TodoSchema = new mongoose.Schema({
         type:String,
         default:null,
     },
+    dueDate:{
+        type:Date, 
+        default:null,
+    },
+    dueTime:{
+        type:String,
+        default:now,
+    }
     
 },
 {timestamps:true});

@@ -1,22 +1,31 @@
+
 import React, { useEffect, useState } from 'react'
 import useStore from '../store/todoStore'
 import "../index.css"
 import { useAuth } from '../store/auth.store';
 import { Notifications } from '../components/Notifications';
 
-export const Dashboard = ({page}) => {
+export const Dashboard = ({ page }) => {
   const { todos, fetchTodos, addTodo, editTodo, deleteTodo, markFinished, isLoading, error, fetchTodo, date } = useStore();
   const [todo, setTodo] = useState("")
   const [description, setDescription] = useState("")
+  const [priority, setPriority] = useState("")
+  const [dueDate, setDueDate] = useState("")
+  const [dueTime, setDueTime] = useState("")
   const [editMode, setEditMode] = useState(false)
   const [editTodoId, setEditTodoId] = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [showDetailPopup, setShowDetailPopup] = useState(false)
   const [selectedTodo, setSelectedTodo] = useState(null)
+  const [showPriorityDropdown, setShowPriorityDropdown] = useState(false)
+  const [showTimeWheel, setShowTimeWheel] = useState(false)
+  const [customHours, setCustomHours] = useState(0)
+  const [customMinutes, setCustomMinutes] = useState(0)
+  const [showDatePicker, setShowDatePicker] = useState(false)
   const { currentUser, loading } = useAuth();
   const currentUserId = currentUser.uid;
 
-  if(page !== "analytics"){
+  if (page !== "analytics") {
     page = "dashboard"
   }
 
@@ -27,24 +36,35 @@ export const Dashboard = ({page}) => {
   const handleSubmit = async () => {
     if (!editMode) {
       console.log("add button clicked");
-      await addTodo({ title: todo, description: description, userId: currentUserId });
+      await addTodo({ title: todo, description: description, userId: currentUserId, priority, dueDate, dueTime });
     }
     else {
-      await editTodo({ title: todo, description: description, id: editTodoId, userId: currentUserId });
+      await editTodo({ title: todo, description: description, id: editTodoId, userId: currentUserId, priority, dueDate, dueTime });
       setEditMode(false);
       setEditTodoId(null);
     }
     setTodo("");
     setDescription("");
+    setPriority("");
+    setDueDate("");
+    setDueTime("");
     setShowForm(false);
   }
 
   const handleCancel = () => {
     setTodo("");
     setDescription("");
+    setPriority("");
+    setDueDate("");
+    setDueTime("");
     setShowForm(false);
     setEditMode(false);
     setEditTodoId(null);
+    setShowPriorityDropdown(false);
+    setShowTimeWheel(false);
+    setShowDatePicker(false);
+    setCustomHours(0);
+    setCustomMinutes(0);
   }
 
   const handleDelete = async (id) => {
@@ -69,6 +89,9 @@ export const Dashboard = ({page}) => {
     setEditMode(false);
     setTodo("");
     setDescription("");
+    setPriority("");
+    setDueDate("");
+    setDueTime("");
   }
 
   const handleTodoClick = (todoItem) => {
@@ -85,22 +108,80 @@ export const Dashboard = ({page}) => {
     e.stopPropagation(); // Prevent the todo item click when clicking action buttons
   }
 
+  const handlePrioritySelect = (priorityLevel) => {
+    setPriority(priorityLevel);
+    setShowPriorityDropdown(false);
+  }
+
+  const handleTimeSelect = (time) => {
+    setDueTime(time);
+    setShowTimeWheel(false);
+  }
+
+  const handleCustomTimeSet = () => {
+    const timeString = `${customHours.toString().padStart(2, '0')}:${customMinutes.toString().padStart(2, '0')}`;
+    setDueTime(timeString);
+    setShowTimeWheel(false);
+  }
+
+  const incrementHours = () => {
+    setCustomHours((prev) => (prev + 1) % 24);
+  }
+
+  const decrementHours = () => {
+    setCustomHours((prev) => (prev - 1 + 24) % 24);
+  }
+
+  const incrementMinutes = () => {
+    setCustomMinutes((prev) => (prev + 1) % 60);
+  }
+
+  const decrementMinutes = () => {
+    setCustomMinutes((prev) => (prev - 1 + 60) % 60);
+  }
+
+  const handleDateSelect = (date) => {
+    setDueDate(date);
+    setShowDatePicker(false);
+  }
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Due date';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  }
+
+  const generateTimeOptions = () => {
+    const times = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        times.push(timeString);
+      }
+    }
+    return times;
+  }
+
   return (
     <div className='h-full w-full overflow-hidden flex flex-col'>
       {!loading && (
         <div className='flex-1 flex flex-col h-full'>
           {/* Header Section - Responsive */}
-          { page === "dashboard" &&
-          <div className="flex-shrink-0 px-10 pt-4 pb-2 mb-4 lg:pl-10 pl-20">
-            <div className="flex items-center justify-between">
-              <div className=' px-4 py-2 rounded-md w-[348px]'>
-                <h2 className=' font-medium lg:text-3xl text-2xl'>Hello {currentUser.displayName}!</h2>
-                <span className=' font-italic py-2 lg:text-base text-sm'>here is whats up today</span>
+          {page === "dashboard" &&
+            <div className="flex-shrink-0 px-10 pt-4 pb-2 mb-4 lg:pl-10 pl-20">
+              <div className="flex items-center justify-between">
+                <div className=' px-4 py-2 rounded-md w-[348px]'>
+                  <h2 className=' font-medium lg:text-3xl text-2xl'>Hello {currentUser.displayName}!</h2>
+                  <span className=' font-italic py-2 lg:text-base text-sm'>here is whats up today</span>
+                </div>
+                <Notifications />
               </div>
-              <Notifications />
             </div>
-          </div>
-}
+          }
 
           {/* Main Content Area - Responsive */}
           <div className='flex-1 px-4 sm:px-6 lg:px-10 overflow-y-auto'>
@@ -207,7 +288,7 @@ export const Dashboard = ({page}) => {
                   />
                 </div>
 
-                <div className='mb-6'>
+                <div className='mb-4'>
                   <label className='block text-sm font-medium text-gray-700 mb-2'>
                     Description
                   </label>
@@ -218,6 +299,166 @@ export const Dashboard = ({page}) => {
                     onChange={handleDescriptionChange}
                     placeholder="Enter task description..."
                   />
+                </div>
+
+                {/* New fields row */}
+                <div className='mb-6 flex flex-wrap gap-2'>
+                  {/* Priority Button */}
+                  <div className='relative'>
+                    <button
+                      type="button"
+                      className='flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 text-sm'
+                      onClick={() => setShowPriorityDropdown(!showPriorityDropdown)}
+                    >
+                      <span className="material-symbols-outlined text-sm text-gray-600">flag</span>
+                      <span className='text-gray-700'>
+                        {priority || 'Priority'}
+                      </span>
+                      <span className="material-symbols-outlined text-sm text-gray-600">
+                        {showPriorityDropdown ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
+                      </span>
+                    </button>
+
+                    {showPriorityDropdown && (
+                      <div className='absolute top-full left-0 mt-1 bg-white border rounded-lg shadow-lg z-10 min-w-[120px]'>
+                        <div className='py-1'>
+                          <button
+                            className='w-full text-left px-3 py-2 hover:bg-gray-100 text-sm flex items-center gap-2'
+                            onClick={() => handlePrioritySelect('low')}
+                          >
+                            <div className='w-3 h-3 bg-green-500 rounded-full'></div>
+                            low
+                          </button>
+                          <button
+                            className='w-full text-left px-3 py-2 hover:bg-gray-100 text-sm flex items-center gap-2'
+                            onClick={() => handlePrioritySelect('medium')}
+                          >
+                            <div className='w-3 h-3 bg-yellow-500 rounded-full'></div>
+                            medium
+                          </button>
+                          <button
+                            className='w-full text-left px-3 py-2 hover:bg-gray-100 text-sm flex items-center gap-2'
+                            onClick={() => handlePrioritySelect('high')}
+                          >
+                            <div className='w-3 h-3 bg-red-500 rounded-full'></div>
+                            high
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Due Date Button */}
+                  <div className='relative'>
+                    <button
+                      type="button"
+                      className='flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 text-sm'
+                      onClick={() => setShowDatePicker(!showDatePicker)}
+                    >
+                      <span className="material-symbols-outlined text-sm text-gray-600">calendar_today</span>
+                      <span className='text-gray-700'>{formatDate(dueDate)}</span>
+                    </button>
+
+                    {showDatePicker && (
+                      <div className='absolute top-full left-0 mt-1 bg-white border rounded-lg shadow-lg z-10 p-3'>
+                        <input
+                          type="date"
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm'
+                          value={dueDate}
+                          onChange={(e) => handleDateSelect(e.target.value)}
+                          min={new Date().toISOString().split('T')[0]}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Due Time Button */}
+                  <div className='relative'>
+                    <button
+                      type="button"
+                      className='flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 text-sm'
+                      onClick={() => setShowTimeWheel(!showTimeWheel)}
+                    >
+                      <span className="material-symbols-outlined text-sm text-gray-600">schedule</span>
+                      <span className='text-gray-700'>
+                        {dueTime || 'Due time'}
+                      </span>
+                    </button>
+
+                    {showTimeWheel && (
+                      <div className='absolute top-full left-0 mt-1 bg-white border rounded-lg shadow-lg z-10 p-3 min-w-[180px]'>
+                        <div className='text-center mb-2'>
+                          <h4 className='text-sm font-medium text-gray-700'>Set Time</h4>
+                        </div>
+
+                        <div className='flex items-center justify-center gap-2 mb-3'>
+                          {/* Hours Section */}
+                          <div className='flex flex-col items-center'>
+                            <button
+                              type="button"
+                              className='p-0.5 hover:bg-gray-100 rounded transition-colors'
+                              onClick={incrementHours}
+                            >
+                              <span className="material-symbols-outlined text-sm text-gray-600">keyboard_arrow_up</span>
+                            </button>
+                            <div className='text-lg font-mono bg-gray-100 px-2 py-1 rounded min-w-[40px] text-center'>
+                              {customHours.toString().padStart(2, '0')}
+                            </div>
+                            <button
+                              type="button"
+                              className='p-0.5 hover:bg-gray-100 rounded transition-colors'
+                              onClick={decrementHours}
+                            >
+                              <span className="material-symbols-outlined text-sm text-gray-600">keyboard_arrow_down</span>
+                            </button>
+                            <span className='text-xs text-gray-500 mt-1'>H</span>
+                          </div>
+
+                          {/* Colon Separator */}
+                          <div className='text-lg font-mono text-gray-600 pb-4'>:</div>
+
+                          {/* Minutes Section */}
+                          <div className='flex flex-col items-center'>
+                            <button
+                              type="button"
+                              className='p-0.5 hover:bg-gray-100 rounded transition-colors'
+                              onClick={incrementMinutes}
+                            >
+                              <span className="material-symbols-outlined text-sm text-gray-600">keyboard_arrow_up</span>
+                            </button>
+                            <div className='text-lg font-mono bg-gray-100 px-2 py-1 rounded min-w-[40px] text-center'>
+                              {customMinutes.toString().padStart(2, '0')}
+                            </div>
+                            <button
+                              type="button"
+                              className='p-0.5 hover:bg-gray-100 rounded transition-colors'
+                              onClick={decrementMinutes}
+                            >
+                              <span className="material-symbols-outlined text-sm text-gray-600">keyboard_arrow_down</span>
+                            </button>
+                            <span className='text-xs text-gray-500 mt-1'>M</span>
+                          </div>
+                        </div>
+
+                        <div className='flex gap-2 justify-end'>
+                          <button
+                            type="button"
+                            className='px-2 py-1 text-xs text-gray-600 bg-gray-200 rounded hover:bg-gray-300 transition-colors'
+                            onClick={() => setShowTimeWheel(false)}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            className='px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors'
+                            onClick={handleCustomTimeSet}
+                          >
+                            Set
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className='flex flex-col sm:flex-row gap-3 justify-end'>
@@ -257,48 +498,78 @@ export const Dashboard = ({page}) => {
                   </button>
                 </div>
 
-                <div className='mb-4'>
-                  <label className='block text-sm font-medium text-gray-700 mb-2'>
-                    Title
-                  </label>
-                  <div className='text-base sm:text-lg font-medium text-gray-900 break-words'>
-                    {selectedTodo.title}
-                  </div>
-                </div>
-
-                {selectedTodo.description && (
-                  <div className='mb-4'>
-                    <label className='block text-sm font-medium text-gray-700 mb-2'>
-                      Description
-                    </label>
-                    <div className='text-sm sm:text-base text-gray-600 whitespace-pre-wrap break-words max-h-40 overflow-y-auto'>
-                      {selectedTodo.description}
+                <div className='space-y-3'>
+                  <div className='grid grid-cols-1 sm:grid-cols-3 gap-2 items-start'>
+                    <label className='text-sm font-medium text-gray-700'>Title:</label>
+                    <div className='col-span-2 text-sm sm:text-base font-medium text-gray-900 break-words'>
+                      {selectedTodo.title}
                     </div>
                   </div>
-                )}
 
-                <div className='mb-4'>
-                  <label className='block text-sm font-medium text-gray-700 mb-2'>
-                    Status
-                  </label>
-                  <div className='text-sm sm:text-base text-gray-600'>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${selectedTodo.isCompleted
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                      {selectedTodo.isCompleted ? 'Completed' : 'Pending'}
-                    </span>
+                  {selectedTodo.description && (
+                    <div className='grid grid-cols-1 sm:grid-cols-3 gap-2 items-start'>
+                      <label className='text-sm font-medium text-gray-700'>Description:</label>
+                      <div className='col-span-2 text-sm text-gray-600 whitespace-pre-wrap break-words max-h-32 overflow-y-auto'>
+                        {selectedTodo.description}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className='grid grid-cols-1 sm:grid-cols-3 gap-2 items-center'>
+                    <label className='text-sm font-medium text-gray-700'>Status:</label>
+                    <div className='col-span-2'>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${selectedTodo.isCompleted
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                        {selectedTodo.isCompleted ? 'Completed' : 'Pending'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {selectedTodo.dueDate && (
+                    <div className='grid grid-cols-1 sm:grid-cols-3 gap-2 items-center'>
+                      <label className='text-sm font-medium text-gray-700'>Due Date:</label>
+                      <div className='col-span-2 text-sm text-gray-600'>
+                        {new Date(selectedTodo.dueDate).toLocaleDateString()}
+                        {selectedTodo.dueTime && (
+                          <span className='ml-2 text-gray-500'>
+                            at {selectedTodo.dueTime}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedTodo.assignedTo && selectedTodo.assignedTo.length > 0 && (
+                    <div className='grid grid-cols-1 sm:grid-cols-3 gap-2 items-center'>
+                      <label className='text-sm font-medium text-gray-700'>Assigned By:</label>
+                      <div className='col-span-2 text-sm text-gray-600'>
+                        {Array.isArray(selectedTodo.assignedTo)
+                          ? selectedTodo.assignedTo.join(', ')
+                          : selectedTodo.assignedTo}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedTodo.orgId && (
+                    <div className='grid grid-cols-1 sm:grid-cols-3 gap-2 items-center'>
+                      <label className='text-sm font-medium text-gray-700'>Organization:</label>
+                      <div className='col-span-2 text-sm text-gray-600'>
+                        {selectedTodo.orgId}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className='grid grid-cols-1 sm:grid-cols-3 gap-2 items-center'>
+                    <label className='text-sm font-medium text-gray-700'>Created:</label>
+                    <div className='col-span-2 text-sm text-gray-600'>
+                      {selectedTodo.createdAt ? selectedTodo.createdAt.split("T")[0] : 'No date'}
+                    </div>
                   </div>
                 </div>
 
-                <div className='mb-6'>
-                  <label className='block text-sm font-medium text-gray-700 mb-2'>
-                    Created
-                  </label>
-                  <div className='text-sm text-gray-600'>
-                    {selectedTodo.createdAt ? selectedTodo.createdAt.split("T")[0] : 'No date'}
-                  </div>
-                </div>
+                <div className='mt-6 pt-4 border-t border-gray-200'></div>
 
                 <div className='flex flex-col sm:flex-row gap-3 justify-end'>
                   <button
@@ -318,3 +589,4 @@ export const Dashboard = ({page}) => {
   )
 
 }
+

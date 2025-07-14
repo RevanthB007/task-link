@@ -1,4 +1,3 @@
-
 import model from "../ai/ai.js";
 import { Todo } from "../models/todo.model.js";
 import { emitToUser } from "../lib/socket.js";
@@ -9,25 +8,30 @@ import { fetchTodos } from "./todo.controller.js";
 // Helper function to calculate productivity metrics
 const evaluateProductivity = (todos) => {
   const totalTasks = todos.length;
-  const completedTasks = todos.filter(todo => 
-    todo.isCompleted || 
-    todo.status === 'done' || 
-    todo.status === 'completed'
+  const completedTasks = todos.filter(
+    (todo) =>
+      todo.isCompleted || todo.status === "done" || todo.status === "completed"
   ).length;
-  const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-  
+  const completionRate =
+    totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
   // Baseline score calculation for consistency
-  const baselineScore = 
-    completionRate >= 80 ? 9 :
-    completionRate >= 60 ? 7 :
-    completionRate >= 40 ? 5 :
-    completionRate >= 20 ? 3 : 1;
-  
+  const baselineScore =
+    completionRate >= 80
+      ? 9
+      : completionRate >= 60
+      ? 7
+      : completionRate >= 40
+      ? 5
+      : completionRate >= 20
+      ? 3
+      : 1;
+
   return {
     completionRate,
     baselineScore,
     totalTasks,
-    completedTasks
+    completedTasks,
   };
 };
 
@@ -41,21 +45,20 @@ export const reviewUser = async (req, res) => {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     // Fetch user's todos for today
-    const todos = await Todo.find({ 
+    const todos = await Todo.find({
       userId,
-      createdAt: { 
+      createdAt: {
         $gte: today,
-        $lt: tomorrow
-      }
+        $lt: tomorrow,
+      },
     });
 
-    if(todos){
+    if (todos) {
       console.log("todos", todos);
-
     }
     // Get productivity metrics for consistent scoring
     const metrics = evaluateProductivity(todos);
-const prompt = `You are an enthusiastic and supportive productivity coach! Your job is to review the user's task management approach based on their today's todos data and provide a consistent, honest score out of 10 with uplifting feedback.
+    const prompt = `You are an enthusiastic and supportive productivity coach! Your job is to review the user's task management approach based on their today's todos data and provide a consistent, honest score out of 10 with uplifting feedback.
 
 Data: ${todos}
 
@@ -112,12 +115,13 @@ export const extractScore = (aiResponse) => {
   try {
     // Remove extra whitespace and normalize the response
     const cleanResponse = aiResponse.trim();
-    
+
     // Regex to find score (number between 0-10, including decimals)
-    const scoreRegex = /(?:score|rating)?\s*:?\s*(\d+(?:\.\d+)?)\s*(?:\/10|out of 10)?/i;
-    
+    const scoreRegex =
+      /(?:score|rating)?\s*:?\s*(\d+(?:\.\d+)?)\s*(?:\/10|out of 10)?/i;
+
     let score = null;
-    
+
     // Try to find score with context first
     const scoreMatch = cleanResponse.match(scoreRegex);
     if (scoreMatch) {
@@ -126,7 +130,7 @@ export const extractScore = (aiResponse) => {
         score = foundScore;
       }
     }
-    
+
     // If no score found with context, look for any number between 0-10
     if (score === null) {
       const numberRegex = /\b(\d+(?:\.\d+)?)\b/g;
@@ -141,11 +145,10 @@ export const extractScore = (aiResponse) => {
         }
       }
     }
-    
+
     return score;
-    
   } catch (error) {
-    console.error('Error extracting score:', error);
+    console.error("Error extracting score:", error);
     return null;
   }
 };
@@ -157,31 +160,191 @@ export const extractFeedback = (aiResponse) => {
     if (feedbackMatch) {
       return feedbackMatch[1].trim();
     }
-    
+
     // If no "Feedback:" found, look for content after score
-    const lines = aiResponse.split('\n').filter(line => line.trim());
+    const lines = aiResponse.split("\n").filter((line) => line.trim());
     if (lines.length >= 2) {
       // Return everything after the first line (which should be the score)
-      return lines.slice(1).join(' ').trim();
+      return lines.slice(1).join(" ").trim();
     }
-    
+
     return "No feedback available";
   } catch (error) {
-    console.error('Error extracting feedback:', error);
+    console.error("Error extracting feedback:", error);
     return "Error extracting feedback";
   }
 };
 
-export const test = async (req, res) => {
-    try {
-        console.log("Testing AI model...");
-        const result = await model.generateContent("Say hello");
-        const response = result.response;
-        const text = await response.text();
-        console.log("AI Response:", text);
-        res.status(200).json({ message: "AI test successful", response: text });
-    } catch (error) {
-        console.log("AI test error:", error);
-        res.status(500).json({ message: error.message });
+
+export const generateSchedule = async (req, res) => {
+  let { date } = req.query;
+  if(!date){
+    date = new Date();
+  }
+  
+  try {
+    console.log("Generating schedule for date:", date);
+    const inputDate = new Date(date);
+    const dateString = inputDate.toISOString().split("T")[0];
+
+    const startOfDay = new Date(
+      inputDate.getFullYear(),
+      inputDate.getMonth(),
+      inputDate.getDate(),
+      0,
+      0,
+      0,
+      0
+    );
+    const endOfDay = new Date(
+      inputDate.getFullYear(),
+      inputDate.getMonth(),
+      inputDate.getDate(),
+      23,
+      59,
+      59,
+      999
+    );
+    
+    const todos = await Todo.find({
+      createdAt: { $gte: startOfDay, $lte: endOfDay },
+      status: "pending" // Only get unscheduled tasks
+    });
+    
+    if (todos.length === 0) {
+      return res.status(200).json({ 
+        message: "No pending tasks found for this date",
+        optimizationSummary: {
+          tasksScheduled: 0,
+          totalDuration: "0 minutes",
+          optimizationNotes: "No tasks to schedule"
+        }
+      });
     }
+    
+    const prompt = `
+You are an intelligent task scheduling assistant. Your job is to analyze a list of tasks to create an optimized daily schedule for ${date}.
+
+## Tasks to Schedule:
+${JSON.stringify(todos, null, 2)}
+
+## Your Responsibilities:
+
+### 1. Duration Estimation
+For tasks without duration, estimate based on:
+- Task title and description complexity
+- Category type (Work tasks typically longer than Personal)
+- Priority level (High priority often means more complex)
+- Provide realistic estimates (15 minutes to 4 hours range)
+
+### 2. Time Slot Assignment
+For each task, determine:
+- Optimal start time within working hours (9:00 AM - 5:00 PM)
+- End time (start time + duration)
+- Scheduling reason (why this time was chosen)
+
+### 3. Optimization Logic
+Consider:
+- Priority-based scheduling (high priority gets better time slots)
+- Deadline constraints (urgent tasks scheduled earlier)
+- Energy levels (complex tasks in morning hours)
+- 15-minute buffer between tasks
+- Realistic time allocation
+
+## CRITICAL: Return ONLY valid JSON in this exact format:
+
+{
+  "scheduledTasks": [
+    {
+      "id": "task_id_here",
+      "status": "scheduled",
+      "duration": "2 hours",
+      "scheduledSlot": {
+        "date": "${date}",
+        "time": "09:00 - 11:00",
+        "startTime": "09:00",
+        "endTime": "11:00",
+        "duration": 120,
+        "reason": "Scheduled during morning hours for optimal focus on high-priority work task"
+      }
+    }
+  ],
+  "optimizationSummary": {
+    "tasksScheduled": 5,
+    "totalDuration": "6 hours 30 minutes",
+    "optimizationNotes": "Prioritized high-priority tasks in morning slots, grouped similar categories together"
+  }
+}
+
+Do not include any text before or after the JSON. Return only the JSON object.
+`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = await response.text();
+    
+    console.log("Raw Gemini response:", text);
+    
+    // Parse the JSON response
+    let geminiResponse;
+    try {
+      // Clean the response text (remove any markdown formatting)
+      const cleanText = text.replace(/```json\n?|\n?```/g, '').trim();
+      geminiResponse = JSON.parse(cleanText);
+    } catch (parseError) {
+      console.error("JSON parsing error:", parseError);
+      return res.status(500).json({ 
+        message: "Failed to parse AI response",
+        error: parseError.message 
+      });
+    }
+    
+    // Update each task in the database
+    const updatePromises = geminiResponse.scheduledTasks.map(async (scheduledTask) => {
+      try {
+        const updatedTask = await Todo.findOneAndUpdate(
+          { id: scheduledTask.id },
+          {
+            status: 'scheduled',
+            duration: scheduledTask.duration,
+            scheduledSlot: {
+              date: new Date(scheduledTask.scheduledSlot.date),
+              startTime: scheduledTask.scheduledSlot.startTime,
+              endTime: scheduledTask.scheduledSlot.endTime,
+              duration: scheduledTask.scheduledSlot.duration,
+              reason: scheduledTask.scheduledSlot.reason
+            }
+          },
+          { new: true }
+        );
+        
+        if (!updatedTask) {
+          console.error(`Task with id ${scheduledTask.id} not found`);
+        }
+        
+        return updatedTask;
+      } catch (updateError) {
+        console.error(`Error updating task ${scheduledTask.id}:`, updateError);
+        throw updateError;
+      }
+    });
+    
+    // Wait for all updates to complete
+    await Promise.all(updatePromises);
+    
+    console.log("Schedule generated successfully");
+    
+    // Return optimization summary to frontend
+    res.status(200).json({
+      message: "Schedule generated successfully",
+      optimizationSummary: geminiResponse.optimizationSummary
+    });
+    
+  } catch (error) {
+    console.error("Schedule generation error:", error);
+    res.status(500).json({ 
+      message: "Failed to generate schedule",
+      error: error.message 
+    });
+  }
 };

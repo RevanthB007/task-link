@@ -5,7 +5,7 @@ import { db } from "../config/firebase.js";
 
 export const addTodo = async (req, res) => {
   const userId = req.user.uid;
-  const { title, description, priority, dueDate, dueTime } = req.body;
+  const { title, description, priority, dueDate, dueTime, duration } = req.body;
   // console.log(req.body);
   const newTodo = new Todo({
     title,
@@ -14,6 +14,7 @@ export const addTodo = async (req, res) => {
     priority,
     dueDate,
     dueTime,
+    "scheduledSlot.duration": duration,
   });
   try {
     await newTodo.save();
@@ -47,14 +48,23 @@ export const deleteTodo = async (req, res) => {
 export const editTodo = async (req, res) => {
   const userId = req.user.uid;
   const id = req.params.id;
-  const { title, description } = req.body;
+  const { title, description, priority, dueDate, dueTime, duration } = req.body;
+  
   try {
-    const todo = await Todo.findOne({ id, userId });
+    const todo = await Todo.findOneAndUpdate(
+      { id, userId },
+      {
+        title,
+        description,
+        priority,
+        dueDate,
+        dueTime,
+        "scheduledSlot.duration": duration,
+      },
+      { new: true }
+    );
+    
     if (todo) {
-      console.log("todo found");
-      todo.title = title;
-      todo.description = description;
-      await todo.save();
       console.log(todo, " updated successfully");
       res.status(201).json({ message: "Todo edited successfully" });
     } else {

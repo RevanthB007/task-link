@@ -5,21 +5,36 @@ import { db } from "../config/firebase.js";
 
 export const addTodo = async (req, res) => {
   const userId = req.user.uid;
-  const { title, description, priority, dueDate, dueTime, duration } = req.body;
-  // console.log(req.body);
-  const newTodo = new Todo({
-    title,
-    description,
-    userId,
-    priority,
-    dueDate,
-    dueTime,
-    "scheduledSlot.duration": duration,
-  });
+  const { title, description, priority, dueDate, dueTime, duration, date } =
+    req.body;
+  console.log(date,"date in backend");
+  let newTodo;
+  if (date !== null && date !== undefined) {
+     newTodo = new Todo({
+      title,
+      description,
+      userId,
+      priority,
+      dueDate,
+      dueTime,
+      "scheduledSlot.duration": duration,
+      createdAt: new Date(date),
+    });
+  } else {
+     newTodo = new Todo({
+      title,
+      description,
+      userId,
+      priority,
+      dueDate,
+      dueTime,
+      "scheduledSlot.duration": duration,
+    });
+  }
   try {
     await newTodo.save();
     console.log(newTodo);
-    res.status(201).json({ message: "Todo added successfully" });
+    res.status(201).json(newTodo);
   } catch (error) {
     console.log("error adding todo");
     console.log(error);
@@ -49,7 +64,7 @@ export const editTodo = async (req, res) => {
   const userId = req.user.uid;
   const id = req.params.id;
   const { title, description, priority, dueDate, dueTime, duration } = req.body;
-  
+
   try {
     const todo = await Todo.findOneAndUpdate(
       { id, userId },
@@ -63,7 +78,7 @@ export const editTodo = async (req, res) => {
       },
       { new: true }
     );
-    
+
     if (todo) {
       console.log(todo, " updated successfully");
       res.status(201).json({ message: "Todo edited successfully" });
@@ -79,9 +94,10 @@ export const editTodo = async (req, res) => {
 
 export const fetchTodos = async (req, res) => {
   const { startOfDay, endOfDay } = req.query;
+  console.log(startOfDay, endOfDay,"in backend");
   let query = {};
   if (startOfDay && endOfDay) {
-    query.createdAt = { $gte: new Date(startOfDay), $lte: new Date(endOfDay) };
+    query.createdAt = { $gte: startOfDay, $lt: endOfDay };
     query.$or = [{ assignedTo: req.user.uid }, { userId: req.user.uid }];
   }
   try {
@@ -125,10 +141,10 @@ export const markFinished = async (req, res) => {
       await todo.save();
       if (todo.isCompleted) {
         console.log(todo, " marked as finished");
-        res.status(200).json({ message: "Todo marked as finished",todo });
+        res.status(200).json({ message: "Todo marked as finished", todo });
       } else {
         console.log(todo, " marked as not finished");
-        res.status(200).json({ message: "Todo marked as not finished",todo });
+        res.status(200).json({ message: "Todo marked as not finished", todo });
       }
     } else {
       console.log("todo not found");

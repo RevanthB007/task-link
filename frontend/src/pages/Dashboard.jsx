@@ -7,7 +7,7 @@ import { Notifications } from '../components/Notifications';
 import { Calendar, Clock, Edit3, Trash2, CheckCircle, Plus, X } from 'lucide-react';
 
 export const Dashboard = ({ page }) => {
-  const { todos, fetchTodos, addTodo, editTodo, deleteTodo, markFinished, isLoading, error, fetchTodo, date } = useStore();
+  const { todos, fetchTodos, addTodo, editTodo, deleteTodo, markFinished, isLoading, error,  date ,setDate} = useStore();
   const [todo, setTodo] = useState("")
   const [description, setDescription] = useState("")
   const [priority, setPriority] = useState("")
@@ -30,7 +30,7 @@ export const Dashboard = ({ page }) => {
     page = "dashboard"
   }
 
-  useEffect(() => { fetchTodos(date) }, [currentUser, date]);
+  useEffect(() => { fetchTodos() }, [currentUser, date]);
 
   // Check for scheduled tasks
   useEffect(() => {
@@ -110,7 +110,9 @@ export const Dashboard = ({ page }) => {
   }
 
   const handlePrioritySelect = (priorityLevel) => {
+    
     setPriority(priorityLevel);
+    
     setShowPriorityDropdown(false);
   }
 
@@ -204,7 +206,7 @@ export const Dashboard = ({ page }) => {
 
                 {/* Notifications */}
                 <div className="ml-4">
-                  <Notifications />
+                  {/* <Notifications /> */}
                 </div>
               </div>
             </div>
@@ -286,7 +288,7 @@ export const Dashboard = ({ page }) => {
                                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
                                   <div className="flex items-center text-sm text-blue-700 mb-1">
                                     <Calendar className="w-4 h-4 mr-1" />
-                                    <span className="font-medium">{todoItem.scheduledSlot.date?.slice(0, 10) || new Date().toISOString().slice(0, 10)}</span>
+                                    <span className="font-medium">{new Date(todoItem.scheduledSlot.date).toLocaleDateString('en-CA') || 'To be scheduled'}</span>
                                     <span className="mx-2">•</span>
                                     <Clock className="w-4 h-4 mr-1" />
                                     <span className="font-medium">{todoItem.scheduledSlot.startTime} - {todoItem.scheduledSlot.endTime}</span>

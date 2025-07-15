@@ -22,47 +22,49 @@ const useStore = create((set, get) => ({
   date: null,
   isLoading: false,
   error: null,
-  assignedTasks:[],
-  outsoucedTasks:[],
+  assignedTasks: [],
+  outsoucedTasks: [],
 
   setDate: (date) => set({ date }),
 
-  fetchTodos: async (date) => {
+  fetchTodos: async () => {
     set({ isLoading: true });
-    console.log("date", date);
+
     let startOfDay, endOfDay;
-    if (date) {
-      const inputDate = new Date(date);
+    let localDate = get().date;
+    if (localDate !== null) {
       startOfDay = new Date(
-        inputDate.getFullYear(),
-        inputDate.getMonth(),
-        inputDate.getDate()
+        localDate.getFullYear(),
+        localDate.getMonth(),
+        localDate.getDate()
       );
       endOfDay = new Date(
-        inputDate.getFullYear(),
-        inputDate.getMonth(),
-        inputDate.getDate() + 1
+        localDate.getFullYear(),
+        localDate.getMonth(),
+        localDate.getDate() + 1
       );
-    } else {
-      const today = new Date();
+    } else{
+      localDate = new Date();
       startOfDay = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        today.getDate()
+        localDate.getFullYear(),
+        localDate.getMonth(),
+        localDate.getDate()
       );
       endOfDay = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        today.getDate() + 1
+        localDate.getFullYear(),
+        localDate.getMonth(),
+        localDate.getDate() + 1
       );
     }
+    console.log(startOfDay, endOfDay, "in frontend");
+    console.log("date is", localDate);
     try {
       const headers = await getAuthHeaders();
       const response = await axiosInstance.get("/todos/", {
         headers,
         params: {
-          startOfDay: startOfDay.toISOString(),
-          endOfDay: endOfDay.toISOString(),
+          startOfDay: startOfDay,
+          endOfDay: endOfDay,
         },
       });
       set({ todos: response.data, isLoading: false });
@@ -79,8 +81,21 @@ const useStore = create((set, get) => ({
 
     try {
       const headers = await getAuthHeaders();
-      console.log("headers", headers);
       console.log("todo", todo);
+      const localDate = get().date;
+      if (localDate !== null) {
+        todo.date = new Date(
+          localDate.getFullYear(),
+          localDate.getMonth(),
+          localDate.getDate()
+        );
+      }else{
+        todo.date = null
+      }
+      console.log(todo.date, "date in frontend");
+      if (todo.priority === "") {
+        todo.priority = "low";
+      }
       const response = await axiosInstance.post("/todos/add", todo, {
         headers,
       });
@@ -131,7 +146,7 @@ const useStore = create((set, get) => ({
     set({ isLoading: true });
 
     try {
-      console.log("marking todo as finished",id);
+      console.log("marking todo as finished", id);
       const headers = await getAuthHeaders();
       const response = await axiosInstance.put(
         `/todos/finish/${id}`,
@@ -139,10 +154,10 @@ const useStore = create((set, get) => ({
         { headers }
       );
       console.log(response.data);
-      if(response.data.todo.isCompleted){
-      console.log("marked as finished");
-      toast.success("Todo marked as completed");
-      }else{
+      if (response.data.todo.isCompleted) {
+        console.log("marked as finished");
+        toast.success("Todo marked as completed");
+      } else {
         console.log("marked as not finished");
         toast.success("Todo marked as not completed");
       }
@@ -155,29 +170,32 @@ const useStore = create((set, get) => ({
     }
   },
 
-  assignTask: async (todoId,assignedTo) => {
+  assignTask: async (todoId, assignedTo) => {
     set({ isLoading: true });
     try {
       const headers = await getAuthHeaders();
-      const response = await axiosInstance.put("/todos/org/assign/" + todoId, {assignedTo}, {
-        headers,
-      });
-      console.log("task assigned",response.data);
+      const response = await axiosInstance.put(
+        "/todos/org/assign/" + todoId,
+        { assignedTo },
+        {
+          headers,
+        }
+      );
+      console.log("task assigned", response.data);
       toast.success("Task assigned successfully");
       set({ isLoading: false });
     } catch (error) {
-       console.log("error assigning task");
-       toast.error("Failed to assign task");
-       set({ isLoading: false });
+      console.log("error assigning task");
+      toast.error("Failed to assign task");
+      set({ isLoading: false });
     }
   },
 
-  fetchAssignedTasks: async()=>{
-    set({isLoading:true})
+  fetchAssignedTasks: async () => {
+    set({ isLoading: true });
     try {
       const response = await axiosInstance.get("/todos/org/assigned");
-      set({assignedTasks:response.data,isLoading:false})
-
+      set({ assignedTasks: response.data, isLoading: false });
     } catch (error) {
       console.log("error fetching assigned tasks");
       toast.error("Failed to load assigned tasks");
@@ -185,40 +203,36 @@ const useStore = create((set, get) => ({
     }
   },
 
-  fetchOutsourcedTasks: async()=>{
-    set({isLoading:true})
+  fetchOutsourcedTasks: async () => {
+    set({ isLoading: true });
     try {
       const response = await axiosInstance.get("/todos/org/outsourced");
-      set({outsoucedTasks:response.data,isLoading:false})
+      set({ outsoucedTasks: response.data, isLoading: false });
     } catch (error) {
       console.log("error fetching outsourced tasks");
       toast.error("Failed to load outsourced tasks");
       set({ isLoading: false });
-      
     }
   },
 
-createAndAssignTask: async(taskData)=>{
-  set({isLoading:true})
-  try {
-    const headers = await getAuthHeaders();
-    const response = await axiosInstance.post("/todos/org/createAssign/",taskData,{headers});
-    console.log("task created",response.data);
-    toast.success("Task created and assigned successfully");
-    set({isLoading:false})
-
-  } catch (error) {
-    console.log("error creating and assigning task");
-    toast.error("Failed to create and assign task");
-    set({ isLoading: false });
-    
-  }
-},
-
-
-
+  createAndAssignTask: async (taskData) => {
+    set({ isLoading: true });
+    try {
+      const headers = await getAuthHeaders();
+      const response = await axiosInstance.post(
+        "/todos/org/createAssign/",
+        taskData,
+        { headers }
+      );
+      console.log("task created", response.data);
+      toast.success("Task created and assigned successfully");
+      set({ isLoading: false });
+    } catch (error) {
+      console.log("error creating and assigning task");
+      toast.error("Failed to create and assign task");
+      set({ isLoading: false });
+    }
+  },
 }));
-
-
 
 export default useStore;

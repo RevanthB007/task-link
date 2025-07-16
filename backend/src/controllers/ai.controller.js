@@ -4,7 +4,7 @@ import { emitToUser } from "../lib/socket.js";
 import { Organization } from "../models/organization.model.js";
 import { db } from "../config/firebase.js";
 import { fetchTodos } from "./todo.controller.js";
-
+import {Settings} from "../models/settings.model.js";
 // Helper function to calculate productivity metrics
 const evaluateProductivity = (todos) => {
   const totalTasks = todos.length;
@@ -177,7 +177,7 @@ export const extractFeedback = (aiResponse) => {
 
 
 export const generateSchedule = async (req, res) => {
-  let { date } = req.query;
+  let { date,globalSettings } = req.query;
   if(!date){
     date = new Date();
   }
@@ -226,7 +226,7 @@ export const generateSchedule = async (req, res) => {
 You are an intelligent task scheduling assistant. Your job is to analyze a list of tasks to create an optimized daily schedule for ${date}.
 
 ## Tasks to Schedule:
-${JSON.stringify(todos, null, 2)}
+${JSON.stringify(todos, globalSettings, 2)}
 
 ## Your Responsibilities:
 
@@ -345,6 +345,32 @@ Do not include any text before or after the JSON. Return only the JSON object.
     res.status(500).json({ 
       message: "Failed to generate schedule",
       error: error.message 
+    });
+  }
+
+
+
+}
+
+export const saveSettings = async (req, res) => {
+  console.log("Request body:", req.body);
+  console.log("User:", req.user);
+  
+  try {
+    const settings = await Settings.findOneAndUpdate(
+      { userId: req.user.uid },
+      { ...req.body, userId: req.user.uid },
+      { new: true, upsert: true }
+    );
+    
+    res.status(200).json(settings);
+  } catch (error) {
+    console.error("Detailed error saving settings:", error);
+    console.error("Error stack:", error.stack);
+    console.error("Error message:", error.message);
+    res.status(500).json({ 
+      message: "Failed to save settings",
+      error: error.message // Only include in development
     });
   }
 };

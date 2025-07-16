@@ -7,7 +7,7 @@ import { Notifications } from '../components/Notifications';
 import { Calendar, Clock, Edit3, Trash2, CheckCircle, Plus, X } from 'lucide-react';
 
 export const Dashboard = ({ page }) => {
-  const { todos, fetchTodos, addTodo, editTodo, deleteTodo, markFinished, isLoading, error,  date ,setDate} = useStore();
+  const { todos, fetchTodos, addTodo, editTodo, deleteTodo, markFinished, isLoading, error, date, setDate } = useStore();
   const [todo, setTodo] = useState("")
   const [description, setDescription] = useState("")
   const [priority, setPriority] = useState("")
@@ -43,12 +43,13 @@ export const Dashboard = ({ page }) => {
 
   const handleSubmit = async () => {
     if (!editMode) {
-      await addTodo({ title: todo, description: description, userId: currentUserId, priority, dueDate, dueTime , duration});
+      await addTodo({ title: todo, description: description, userId: currentUserId, priority, dueDate, dueTime, duration });
     }
     else {
-      await editTodo({ title: todo, description: description, id: editTodoId, userId: currentUserId, priority, dueDate, dueTime,
-        duration 
-       });
+      await editTodo({
+        title: todo, description: description, id: editTodoId, userId: currentUserId, priority, dueDate, dueTime,
+        duration
+      });
       setEditMode(false);
       setEditTodoId(null);
     }
@@ -110,9 +111,9 @@ export const Dashboard = ({ page }) => {
   }
 
   const handlePrioritySelect = (priorityLevel) => {
-    
+
     setPriority(priorityLevel);
-    
+
     setShowPriorityDropdown(false);
   }
 
@@ -232,11 +233,16 @@ export const Dashboard = ({ page }) => {
                 <div className="px-4 py-3 border-b flex items-center justify-between">
                   <h3 className="font-medium text-gray-900">
                     {isOptimized ? 'Scheduled Tasks' : 'Tasks'}
-                    {date && (
+                    {date ? (
                       <span className="ml-2 text-sm font-normal text-gray-500">
                         for {new Date(date).toLocaleDateString()}
                       </span>
-                    )}
+
+                    ) :
+                      <span className="ml-2 text-sm font-normal text-gray-500">
+                        for Today ({new Date().toLocaleDateString()})
+                      </span>
+                    }
                   </h3>
                   <div className='flex items-center space-x-2'>
                     <span className="text-sm text-gray-500">{todos.length} task{todos.length !== 1 ? 's' : ''}</span>
@@ -288,10 +294,12 @@ export const Dashboard = ({ page }) => {
                                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
                                   <div className="flex items-center text-sm text-blue-700 mb-1">
                                     <Calendar className="w-4 h-4 mr-1" />
-                                    <span className="font-medium">{new Date(todoItem.scheduledSlot.date).toLocaleDateString('en-CA') || 'To be scheduled'}</span>
+                                    <span className="font-medium">{todoItem.status === 'scheduled' && new Date(todoItem.scheduledSlot.date).toLocaleDateString('en-CA') || 'To be scheduled'}</span>
                                     <span className="mx-2">•</span>
                                     <Clock className="w-4 h-4 mr-1" />
-                                    <span className="font-medium">{todoItem.scheduledSlot.startTime} - {todoItem.scheduledSlot.endTime}</span>
+                                    <span className="font-medium">
+                                      {todoItem.status === "scheduled" ? todoItem.scheduledSlot.startTime + " - " + todoItem.scheduledSlot.endTime : "To be scheduled"}
+                                    </span>
                                   </div>
                                   {todoItem.scheduledSlot.reason && (
                                     <p className="text-xs text-blue-600 mt-1">{todoItem.scheduledSlot.reason}</p>

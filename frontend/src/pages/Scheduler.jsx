@@ -6,10 +6,10 @@ import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import useStore from '../store/todoStore';
 import useAIStore from '../store/ai.store';
-import { Dashboard } from './Dashboard'; // Import Dashboard component
+import { Dashboard } from './Dashboard';
 
 const TaskScheduler = () => {
-  const { generateSchedule } = useAIStore();
+  const { generateSchedule,getSettings,saveSettings } = useAIStore();
   const {fetchTodos, todos, date, setDate } = useStore();
   const [showSettings, setShowSettings] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -18,15 +18,15 @@ const TaskScheduler = () => {
   const [isOptimized, setIsOptimized] = useState(false);
 
   const [globalSettings, setGlobalSettings] = useState({
-    preferredTimeSlots: [],
-    availableDays: [],
+    preferredTimeSlots: ['Morning (9-12 PM)', 'Afternoon (12-5 PM)'],
+    availableDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
     timeBlocksToAvoid: '',
     bufferTime: '15',
     workingHours: { start: '09:00', end: '17:00' },
     breakPreferences: '60',
     productivityHours: [],
     recurringPatterns: '',
-    deadlineFlexibility: 'firm',
+    deadlineFlexibility: 'flexible',
     minTimeBlock: '30'
   });
 
@@ -97,6 +97,11 @@ const TaskScheduler = () => {
       setGlobalSettings(prev => ({ ...prev, [field]: value }));
     }
   };
+
+  const handleSaveSettings = async () =>{
+    setShowSettings(false)
+    await saveSettings(globalSettings);
+  }
 
   const handleArrayChange = (field, value, checked, isGlobal = false) => {
     const setter = setGlobalSettings;
@@ -357,7 +362,7 @@ const TaskScheduler = () => {
 
                 <div className="flex justify-end">
                   <button
-                    onClick={() => setShowSettings(false)}
+                    onClick={() => handleSaveSettings()}
                     className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     Save Settings

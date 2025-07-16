@@ -19,24 +19,57 @@ const getAuthHeaders = async () => {
 const useAIStore = create((set, get) => ({
   score: null,
   feedback: null,
-  date: null,
   isLoading: false,
-  userReview: async () => {
-    try {
-      set({ isLoading: true });
-      const headers = await getAuthHeaders();
-      console.log(headers);
-      const response = await axiosInstance.get("/ai/userReview", { headers });
-      console.log(response.data);
-      set({
-        score: response.data.score,
-        feedback: response.data.feedback,
-        isLoading: false,
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  },
+  error: false,
+  message: null,
+  //   let startOfDay, endOfDay;
+  //   let localDate = date;
+  //   if (localDate !== null) {
+  //     startOfDay = new Date(
+  //       localDate.getFullYear(),
+  //       localDate.getMonth(),
+  //       localDate.getDate()
+  //     );
+  //     endOfDay = new Date(
+  //       localDate.getFullYear(),
+  //       localDate.getMonth(),
+  //       localDate.getDate() + 1
+  //     );
+  //   } else {
+  //     localDate = new Date();
+  //     startOfDay = new Date(
+  //       localDate.getFullYear(),
+  //       localDate.getMonth(),
+  //       localDate.getDate()
+  //     );
+  //     endOfDay = new Date(
+  //       localDate.getFullYear(),
+  //       localDate.getMonth(),
+  //       localDate.getDate() + 1
+  //     );
+  //   }
+  //   try {
+  //     set({ isLoading: true });
+
+  //     const headers = await getAuthHeaders();
+  //     console.log(headers);
+  //     const response = await axiosInstance.get("/ai/userReview", { headers ,
+  //       params: {
+  //         startOfDay,
+  //         endOfDay,
+  //       }
+  //     });
+  //     console.log(response.data);
+  //     set({
+  //       score: response.data.score,
+  //       feedback: response.data.feedback,
+  //       isLoading: false,
+  //     });
+  //   } catch (error) {
+  //     console.log(error);
+  //     set({ error: true, isLoading: false, message: error.message });
+  //   }
+  // },
 
   generateSchedule: async (globalSettings, date) => {
     set({ isLoading: true });
@@ -54,7 +87,7 @@ const useAIStore = create((set, get) => ({
       set({ isLoading: false });
     } catch (error) {
       console.log(error);
-      set({ isLoading: false });
+      set({ isLoading: false, error: true, message: error.message });
     }
   },
 
@@ -75,7 +108,7 @@ const useAIStore = create((set, get) => ({
       console.error("Response status:", error.response?.status);
 
       toast.error(error.response?.data?.message || "Failed to save settings");
-      set({ isLoading: false });
+      set({ isLoading: false, error: true, message: error.message });
     }
   },
 }));

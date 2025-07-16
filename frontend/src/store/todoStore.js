@@ -43,7 +43,7 @@ const useStore = create((set, get) => ({
         localDate.getMonth(),
         localDate.getDate() + 1
       );
-    } else{
+    } else {
       localDate = new Date();
       startOfDay = new Date(
         localDate.getFullYear(),
@@ -89,8 +89,8 @@ const useStore = create((set, get) => ({
           localDate.getMonth(),
           localDate.getDate()
         );
-      }else{
-        todo.date = null
+      } else {
+        todo.date = null;
       }
       console.log(todo.date, "date in frontend");
       if (todo.priority === "") {
@@ -234,8 +234,57 @@ const useStore = create((set, get) => ({
     }
   },
 
+  userReview: async () => {
+    let startOfDay, endOfDay;
+    let localDate = get().date;
+    if (localDate !== null) {
+      startOfDay = new Date(
+        localDate.getFullYear(),
+        localDate.getMonth(),
+        localDate.getDate()
+      );
+      endOfDay = new Date(
+        localDate.getFullYear(),
+        localDate.getMonth(),
+        localDate.getDate() + 1
+      );
+    } else {
+      localDate = new Date();
+      startOfDay = new Date(
+        localDate.getFullYear(),
+        localDate.getMonth(),
+        localDate.getDate()
+      );
+      endOfDay = new Date(
+        localDate.getFullYear(),
+        localDate.getMonth(),
+        localDate.getDate() + 1
+      );
+    }
+    try {
+      set({ isLoading: true });
 
+      const headers = await getAuthHeaders();
+      console.log(headers);
+      const response = await axiosInstance.get("/ai/userReview", {
+        headers,
+        params: {
+          startOfDay,
+          endOfDay,
+        },
+      });
+      console.log(response.data);
+      set({
+        score: response.data.score,
+        feedback: response.data.feedback,
+        isLoading: false,
+      });
+    } catch (error) {
+      console.log(error);
 
+      set({  isLoading: false, error: "Server is currently busy please try again later" });
+    }
+  },
 }));
 
 export default useStore;

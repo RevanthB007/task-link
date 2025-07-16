@@ -4,7 +4,7 @@ import { emitToUser } from "../lib/socket.js";
 import { Organization } from "../models/organization.model.js";
 import { db } from "../config/firebase.js";
 import { fetchTodos } from "./todo.controller.js";
-import {Settings} from "../models/settings.model.js";
+import { Settings } from "../models/settings.model.js";
 // Helper function to calculate productivity metrics
 const evaluateProductivity = (todos) => {
   const totalTasks = todos.length;
@@ -37,21 +37,16 @@ const evaluateProductivity = (todos) => {
 
 export const reviewUser = async (req, res) => {
   const userId = req.user.uid;
+  const { startOfDay, endOfDay } = req.query;
+  console.log(startOfDay, endOfDay, "in backend reviewUser");
+  let query = {};
+  if (startOfDay && endOfDay) {
+    query.createdAt = { $gte: startOfDay, $lt: endOfDay };
+    query.$or = [{ assignedTo: req.user.uid }, { userId: req.user.uid }];
+  }
   try {
-    // Get today's date range
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
     // Fetch user's todos for today
-    const todos = await Todo.find({
-      userId,
-      createdAt: {
-        $gte: today,
-        $lt: tomorrow,
-      },
-    });
+    const todos = await Todo.find(query).sort({ createdAt: -1 });
 
     if (todos) {
       console.log("todos", todos);
@@ -106,6 +101,11 @@ Remember: The score should reflect actual performance based on the completion ra
 
     res.status(200).json({ score, feedback, metrics }); // Optional: include metrics for debugging
   } catch (error) {
+    if (error.code === 503) {
+      res
+        .status(503)
+        .json({ message: "The model is overloaded. Please try again later" });
+    }
     console.log("error reviewing user ", error);
     res.status(500).json({ message: error.message });
   }
@@ -175,13 +175,12 @@ export const extractFeedback = (aiResponse) => {
   }
 };
 
-
 export const generateSchedule = async (req, res) => {
-  let { date,globalSettings } = req.query;
-  if(!date){
+  let { date, globalSettings } = req.query;
+  if (!date) {
     date = new Date();
   }
-  
+
   try {
     console.log("Generating schedule for date:", date);
     const inputDate = new Date(date);
@@ -205,23 +204,23 @@ export const generateSchedule = async (req, res) => {
       59,
       999
     );
-    
+
     const todos = await Todo.find({
       createdAt: { $gte: startOfDay, $lte: endOfDay },
-      status: "pending" // Only get unscheduled tasks
+      status: "pending", // Only get unscheduled tasks
     });
-    
+
     if (todos.length === 0) {
-      return res.status(200).json({ 
+      return res.status(200).json({
         message: "No pending tasks found for this date",
         optimizationSummary: {
           tasksScheduled: 0,
           totalDuration: "0 minutes",
-          optimizationNotes: "No tasks to schedule"
-        }
+          optimizationNotes: "No tasks to schedule",
+        },
       });
     }
-    
+
     const prompt = `
 You are an intelligent task scheduling assistant. Your job is to analyze a list of tasks to create an optimized daily schedule for ${date}.
 
@@ -282,95 +281,96 @@ Do not include any text before or after the JSON. Return only the JSON object.
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = await response.text();
-    
+
     console.log("Raw Gemini response:", text);
-    
+
     // Parse the JSON response
     let geminiResponse;
     try {
       // Clean the response text (remove any markdown formatting)
-      const cleanText = text.replace(/```json\n?|\n?```/g, '').trim();
+      const cleanText = text.replace(/```json\n?|\n?```/g, "").trim();
       geminiResponse = JSON.parse(cleanText);
     } catch (parseError) {
       console.error("JSON parsing error:", parseError);
-      return res.status(500).json({ 
+      return res.status(500).json({
         message: "Failed to parse AI response",
-        error: parseError.message 
+        error: parseError.message,
       });
     }
-    
+
     // Update each task in the database
-    const updatePromises = geminiResponse.scheduledTasks.map(async (scheduledTask) => {
-      try {
-        const updatedTask = await Todo.findOneAndUpdate(
-          { id: scheduledTask.id },
-          {
-            status: 'scheduled',
-            duration: scheduledTask.duration,
-            scheduledSlot: {
-              date: new Date(scheduledTask.scheduledSlot.date),
-              startTime: scheduledTask.scheduledSlot.startTime,
-              endTime: scheduledTask.scheduledSlot.endTime,
-              duration: scheduledTask.scheduledSlot.duration,
-              reason: scheduledTask.scheduledSlot.reason
-            }
-          },
-          { new: true }
-        );
-        
-        if (!updatedTask) {
-          console.error(`Task with id ${scheduledTask.id} not found`);
+    const updatePromises = geminiResponse.scheduledTasks.map(
+      async (scheduledTask) => {
+        try {
+          const updatedTask = await Todo.findOneAndUpdate(
+            { id: scheduledTask.id },
+            {
+              status: "scheduled",
+              duration: scheduledTask.duration,
+              scheduledSlot: {
+                date: new Date(scheduledTask.scheduledSlot.date),
+                startTime: scheduledTask.scheduledSlot.startTime,
+                endTime: scheduledTask.scheduledSlot.endTime,
+                duration: scheduledTask.scheduledSlot.duration,
+                reason: scheduledTask.scheduledSlot.reason,
+              },
+            },
+            { new: true }
+          );
+
+          if (!updatedTask) {
+            console.error(`Task with id ${scheduledTask.id} not found`);
+          }
+
+          return updatedTask;
+        } catch (updateError) {
+          console.error(
+            `Error updating task ${scheduledTask.id}:`,
+            updateError
+          );
+          throw updateError;
         }
-        
-        return updatedTask;
-      } catch (updateError) {
-        console.error(`Error updating task ${scheduledTask.id}:`, updateError);
-        throw updateError;
       }
-    });
-    
+    );
+
     // Wait for all updates to complete
     await Promise.all(updatePromises);
-    
+
     console.log("Schedule generated successfully");
-    
+
     // Return optimization summary to frontend
     res.status(200).json({
       message: "Schedule generated successfully",
-      optimizationSummary: geminiResponse.optimizationSummary
+      optimizationSummary: geminiResponse.optimizationSummary,
     });
-    
   } catch (error) {
     console.error("Schedule generation error:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: "Failed to generate schedule",
-      error: error.message 
+      error: error.message,
     });
   }
-
-
-
-}
+};
 
 export const saveSettings = async (req, res) => {
   console.log("Request body:", req.body);
   console.log("User:", req.user);
-  
+
   try {
     const settings = await Settings.findOneAndUpdate(
       { userId: req.user.uid },
       { ...req.body, userId: req.user.uid },
       { new: true, upsert: true }
     );
-    
+
     res.status(200).json(settings);
   } catch (error) {
     console.error("Detailed error saving settings:", error);
     console.error("Error stack:", error.stack);
     console.error("Error message:", error.message);
-    res.status(500).json({ 
+    res.status(500).json({
       message: "Failed to save settings",
-      error: error.message // Only include in development
+      error: error.message, // Only include in development
     });
   }
 };

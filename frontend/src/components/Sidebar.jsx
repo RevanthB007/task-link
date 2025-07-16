@@ -71,7 +71,7 @@ export const Sidebar = () => {
     const HamburgerButton = () => (
         <button
             onClick={toggleSidebar}
-            className="lg:hidden fixed top-4 left-4 z-50 flex items-center justify-center w-12 h-12 bg-blue-500 text-white rounded-lg shadow-lg hover:bg-blue-600 transition-colors duration-200"
+            className="lg:hidden fixed top-2 left-2 z-50 flex items-center justify-center w-12 h-12 bg-blue-500 text-white rounded-lg shadow-lg hover:bg-blue-600 transition-colors duration-200"
             aria-label="Toggle menu"
         >
             <div className="flex flex-col justify-center items-center w-6 h-6">

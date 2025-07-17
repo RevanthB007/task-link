@@ -24,6 +24,8 @@ const useStore = create((set, get) => ({
   error: null,
   assignedTasks: [],
   outsoucedTasks: [],
+  feedback: null,
+  score: null,
 
   setDate: (date) => set({ date }),
 

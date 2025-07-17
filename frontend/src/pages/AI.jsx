@@ -180,8 +180,7 @@ import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 
 export const AI = () => {
-  const { score, feedback } = useAIStore();
-  const { date, setDate, userReview ,error,isLoading} = useStore();
+  const { date, setDate, userReview ,error,isLoading,score,feedback} = useStore();
   const [btnClick, setBtnClick] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -382,6 +381,7 @@ export const AI = () => {
                   <div className="bg-white rounded-lg p-4 shadow-sm border border-slate-200">
                     <p className="text-slate-700 leading-relaxed text-base">
                       {!isLoading && (feedback !== null ? feedback : error)}
+                      
                     </p>
                   </div>
                 </div>

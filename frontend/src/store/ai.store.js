@@ -17,11 +17,11 @@ const getAuthHeaders = async () => {
 };
 
 const useAIStore = create((set, get) => ({
-  score: null,
-  feedback: null,
+  
   isLoading: false,
   error: false,
   message: null,
+
   //   let startOfDay, endOfDay;
   //   let localDate = date;
   //   if (localDate !== null) {
